@@ -12,7 +12,6 @@ inputData *getInputData(int *argc, char **argv)
 
     inputData *HCData = new inputData;
     std::vector<std::string> found;
-    bool distance_true_visible = false;
 
     for (int i = 0; i < *argc; i++)
     {
@@ -67,7 +66,6 @@ inputData *getInputData(int *argc, char **argv)
         }
         else if (std::string(argv[i]) == "--dist-true=visible")
         {
-            distance_true_visible = true;
         }
     }
 
@@ -202,11 +200,11 @@ int writeToOutput(inputData *HCData,
             outputFile << "Nearest neighbor-"
                        << j + 1 << ": " << queryOutputData[i]->neighbours[j]->point->id << std::endl
                        << "distanceHypercube: " << queryOutputData[i]->neighbours[j]->dist << std::endl;
-            if (HCData->distance_true_visible)
-            {
-                outputFile << "True Nearest neighbor-"
-                           << j + 1 << ": " << queryTrueNeighbors[i]->neighbours[j]->point->id << std::endl;
-            }
+            // if (HCData->distance_true_visible)
+            // {
+            outputFile << "True Nearest neighbor-"
+                       << j + 1 << ": " << queryTrueNeighbors[i]->neighbours[j]->point->id << std::endl;
+            // }
             outputFile << "distanceTrue: " << queryTrueNeighbors[i]->neighbours[j]->dist << std::endl;
         }
 

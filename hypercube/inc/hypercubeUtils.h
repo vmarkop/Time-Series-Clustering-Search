@@ -22,7 +22,6 @@ typedef struct HCinputDataStruct
     int numberOfNearest;
     int radius;
     int dimension;
-    bool distance_true_visible;
 } inputData;
 
 inputData *getInputData(int *argc, char **argv);

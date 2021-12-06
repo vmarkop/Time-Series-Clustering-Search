@@ -10,7 +10,6 @@ inputData *getInputData(int *argc, char **argv)
     inputData *SearchData = new inputData;
     std::vector<std::string> found;
     std::string algorithmName;
-    SearchData->distance_true_visible = false;
 
     for (int i = 0; i < *argc; i++)
     {
@@ -59,13 +58,9 @@ inputData *getInputData(int *argc, char **argv)
         }
         else if (std::string(argv[i]) == "-algorithm")
         {
-            algorithmName = atoi(argv[i + 1]);
+            algorithmName = std::string(argv[i + 1]);
             std::cout << SearchData->algorithm << std::endl;
             found.push_back("algorithm");
-        }
-        else if (std::string(argv[i]) == "--dist-true=visible")
-        {
-            SearchData->distance_true_visible = true;
         }
     }
 
@@ -90,7 +85,7 @@ inputData *getInputData(int *argc, char **argv)
     if (std::find(found.begin(), found.end(), "queryFile") == found.end()) // if not found queryFile
     {
         std::cout << "Please give query file name" << std::endl;
-
+        word = "";
         while ((ch = getchar()) != '\n')
             word += ch;
         SearchData->queryFileName = word;
@@ -98,7 +93,7 @@ inputData *getInputData(int *argc, char **argv)
     if (std::find(found.begin(), found.end(), "outputFile") == found.end()) // if not found outputFile
     {
         std::cout << "Please give output file name" << std::endl;
-
+        word = "";
         while ((ch = getchar()) != '\n')
             word += ch;
         SearchData->outputFileName = word;
@@ -106,7 +101,7 @@ inputData *getInputData(int *argc, char **argv)
     if (std::find(found.begin(), found.end(), "algorithm") == found.end()) // if not found algorithm
     {
         std::cout << "Please give algorithm to be used" << std::endl;
-
+        word = "";
         while ((ch = getchar()) != '\n')
             word += ch;
         algorithmName = word;
@@ -136,19 +131,20 @@ inputData *getInputData(int *argc, char **argv)
     return SearchData;
 }
 
-int writeToOutput(inputData *LSHData,
+int writeToOutput(inputData *SearchData,
                   std::vector<PointPtr> queryPoints,
                   std::vector<kNeighboursPtr> queryOutputData,
                   std::vector<kNeighboursPtr> queryTrueNeighbors,
-                  std::vector<std::vector<PointPtr>> queryRangeSearch,
-                  std::vector<double> tLSH,
-                  std::vector<double> tTrue)
+                  double tLSH,
+                  double tTrue,
+                  std::string algorithm)
 {
-    std::ofstream outputFile(LSHData->outputFileName);
+    std::cout << "Creating output file..." << std::endl;
+    std::ofstream outputFile(SearchData->outputFileName);
     if (!outputFile.is_open())
     {
         std::cerr << "Could not open the file: '"
-                  << LSHData->outputFileName << "'"
+                  << SearchData->outputFileName << "'"
                   << std::endl;
         return EXIT_FAILURE;
     }
@@ -156,29 +152,27 @@ int writeToOutput(inputData *LSHData,
     for (int i = 0; i < queryPoints.size(); i++)
     {
         outputFile << "Query: "
-                   << queryPoints[i]->id << std::endl;
+                   << queryPoints[i]->id << std::endl
+                   << "Algorithm: " << algorithm << std::endl;
 
-        for (int j = 0; j < queryOutputData[i]->size; j++)
-        {
-            outputFile << "Nearest neighbor-"
-                       << j + 1 << ": " << queryOutputData[i]->neighbours[j]->point->id << std::endl
-                       << "distanceLSH: " << queryOutputData[i]->neighbours[j]->dist << std::endl;
-            if (LSHData->distance_true_visible)
-            {
-                outputFile << "True Nearest neighbor-"
-                           << j + 1 << ": " << queryTrueNeighbors[i]->neighbours[j]->point->id << std::endl;
-            }
-            outputFile << "distanceTrue: " << queryTrueNeighbors[i]->neighbours[j]->dist << std::endl;
-        }
+        outputFile << "Approximate Nearest neighbor: "
+                   << queryOutputData[i]->neighbours[0]->point->id << std::endl;
 
-        outputFile << "tLSH: " << (double)(tLSH[i] / 1000) << 's' << std::endl
-                   << "tTrue: " << (double)(tTrue[i] / 1000) << 's' << std::endl
-                   << "R-near neighbors:" << std::endl;
-        for (int j = 0; j < queryRangeSearch[i].size(); j++)
-            outputFile << queryRangeSearch[i][j]->id << std::endl;
-        outputFile << std::endl
-                   << std::endl;
+        outputFile << "True Nearest neighbor: "
+                   << queryTrueNeighbors[i]->neighbours[0]->point->id << std::endl;
+
+        outputFile << "distanceApproximate: "
+                   << queryOutputData[i]->neighbours[0]->dist << std::endl;
+
+        outputFile << "distanceTrue: "
+                   << queryTrueNeighbors[i]->neighbours[0]->dist << std::endl;
+
+        outputFile << std::endl;
     }
+
+    outputFile << "tApproximateAverage: " << (double)(tLSH / queryPoints.size() / 1000) << 's' << std::endl
+               << "tTrueAverage: " << (double)(tTrue / queryPoints.size() / 1000) << 's' << std::endl;
+
     outputFile.close();
     return EXIT_SUCCESS;
 }

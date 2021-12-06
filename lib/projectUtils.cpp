@@ -13,7 +13,6 @@ std::vector<std::string> get_lines(std::string fileName)
                   << std::endl;
         std::exit(EXIT_FAILURE);
     }
-    std::cout << "Reading input file " << fileName << "..." << std::endl;
     std::vector<std::string> inputLines;
     std::string line;
     while (std::getline(file, line))
@@ -29,7 +28,7 @@ int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *poin
     int dimension;
     for (int i = 0; i < linesVector.size(); i++)
     {
-        // separate std::string by Spaces
+        // separate std::string by Tabs
         // pick every element from 2nd to std::endl
         // read point coordinates
         PointPtr currPoint = new Point;
@@ -37,7 +36,7 @@ int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *poin
         dimension = 0;
         for (char x : linesVector[i])
         {
-            if (x == ' ')
+            if (x == '\t')
             {
                 if (dimension)
                     currPoint->coords.push_back(atof(word.c_str()));
@@ -55,7 +54,6 @@ int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *poin
 
         pointsVector->push_back(currPoint);
     }
-    dimension--;
     return dimension;
 }
 

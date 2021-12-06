@@ -25,7 +25,6 @@ typedef struct searchInputDataStruct
     int metric;
     double delta;
     int dimension;
-    bool distance_true_visible;
 } inputData;
 
 inputData *getInputData(int *argc, char **argv);
@@ -33,9 +32,9 @@ int writeToOutput(inputData *LSHData,
                   std::vector<PointPtr> queryPoints,
                   std::vector<kNeighboursPtr> queryOutputData,
                   std::vector<kNeighboursPtr> queryTrueNeighbors,
-                  std::vector<std::vector<PointPtr>> queryRangeSearch,
-                  std::vector<double> tLSH,
-                  std::vector<double> tTrue);
+                  double tLSH,
+                  double tTrue,
+                  std::string algorithm);
 void deleteData(std::vector<PointPtr> *inputPoints,
                 std::vector<PointPtr> *queryPoints,
                 std::vector<std::vector<Neighbour> *> *k_nearest_neighbours,
