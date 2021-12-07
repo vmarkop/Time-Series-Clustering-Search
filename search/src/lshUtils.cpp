@@ -9,7 +9,7 @@ inputData *getInputData(int *argc, char **argv)
 
     inputData *SearchData = new inputData;
     std::vector<std::string> found;
-    std::string algorithmName;
+    std::string algorithmName, metricName;
 
     for (int i = 0; i < *argc; i++)
     {
@@ -59,8 +59,14 @@ inputData *getInputData(int *argc, char **argv)
         else if (std::string(argv[i]) == "-algorithm")
         {
             algorithmName = std::string(argv[i + 1]);
-            std::cout << SearchData->algorithm << std::endl;
+            std::cout << algorithmName << std::endl;
             found.push_back("algorithm");
+        }
+        else if (std::string(argv[i]) == "-metric")
+        {
+            metricName = std::string(argv[i + 1]);
+            std::cout << metricName << std::endl;
+            found.push_back("metric");
         }
     }
 
@@ -114,13 +120,33 @@ inputData *getInputData(int *argc, char **argv)
         delete SearchData;
         return NULL;
     }
-
     if (algorithmName == "LSH")
         SearchData->algorithm = ALG_LSH;
     else if (algorithmName == "Hypercube")
         SearchData->algorithm = ALG_HC;
     else if (algorithmName == "Frechet")
+    {
         SearchData->algorithm = ALG_FR;
+        if (std::find(found.begin(), found.end(), "metric") == found.end()) // if not found metric
+        {
+            std::cout << "Please give metric: discrete or continuous to be used" << std::endl;
+            word = "";
+            while ((ch = getchar()) != '\n')
+                word += ch;
+            metricName = word;
+        }
+
+        if (metricName == "discrete")
+            SearchData->metric = MTR_DISC;
+        else if (metricName == "continuous")
+            SearchData->metric = MTR_CONT;
+        else
+        {
+            std::cerr << "Unknown Frechet metric. Valid options are discrete or continuous." << std::endl;
+            delete SearchData;
+            return NULL;
+        }
+    }
     else
     {
         std::cerr << "Unknown algorithm. Valid options are LSH, Hypercube, or Frechet" << std::endl;

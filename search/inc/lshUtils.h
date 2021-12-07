@@ -8,9 +8,13 @@
 
 #define DEF_K 4
 #define DEF_L 5
+
 #define ALG_LSH 0
 #define ALG_HC 1
 #define ALG_FR 2
+
+#define MTR_DISC 0
+#define MTR_CONT 1
 
 typedef struct searchInputDataStruct
 {
