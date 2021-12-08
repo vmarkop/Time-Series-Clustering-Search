@@ -6,6 +6,7 @@
 
 #define BIGM (4294967291)
 #define W (5)
+#define DELTA (3)
 
 typedef struct PointStruct *PointPtr;
 typedef struct BucketStruct *BucketPtr;
@@ -18,6 +19,8 @@ typedef struct PointStruct
     std::vector<double> coords;
 } Point;
 
+typedef Point Curve;
+typedef PointPtr CurvePtr;
 typedef struct BucketStruct
 {
     std::vector<PointPtr> points;
@@ -56,11 +59,15 @@ struct BY_ID_INT
 };
 std::vector<std::string> get_lines(std::string fileName);
 int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *pointVector);
+int get_curves(std::vector<std::string> linesVector, std::vector<CurvePtr> *curvesVector);
+// std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr> *pointVector);
+std::vector<CurvePtr> *convert_points(int dimension, const std::vector<PointPtr> *pointVector);
 void sort_neighbours(kNeighboursPtr k_nearest_neighbours, int k_neighbours);
 void sort_points(std::vector<PointPtr> *Data);
 void sort_points_str(std::vector<std::string> *Data);
 int notAlreadyExists(kNeighboursPtr k_nearest_neighbours, std::string pointID);
 kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dimension);
 std::string checkRerun();
+CurvePtr snap_curve(const CurvePtr curve_vector, int delta, int dimension);
 
 #endif

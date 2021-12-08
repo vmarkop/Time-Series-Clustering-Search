@@ -167,3 +167,100 @@ std::string checkRerun()
     }
     return option;
 }
+
+// Save input file lines as a discretized curve,
+// projected from 2D space to a single vector of size 2*d.
+int get_curves(std::vector<std::string> linesVector, std::vector<CurvePtr> *curvesVector)
+{
+    int dimension;
+    for (int i = 0; i < linesVector.size(); i++)
+    {
+        // separate std::string by Tabs
+        // pick every element from 2nd to std::endl
+        // read point coordinates
+        CurvePtr currCurve = new Curve;
+        std::string word = "";
+        dimension = 0;
+        // for (char x : linesVector[i])
+        for (int j = 0; j < linesVector[i].size(); j++)
+        {
+            if (linesVector[i][j] /*x*/ == '\t')
+            {
+                if (dimension)
+                {
+                    currCurve->coords.push_back(stod(word) /*atof(word.c_str())*/);
+                    currCurve->coords.push_back(j);
+                }
+                else
+                    currCurve->id = word;
+                word = "";
+
+                dimension += 2;
+            }
+            else
+            {
+                word = word + linesVector[i][j]; //x;
+            }
+        }
+
+        curvesVector->push_back(currCurve);
+    }
+    return dimension;
+}
+
+// // Convert euclidean vector point to discretized curve,
+// // projected from 2D space to a single vector of size 2*d.
+// std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr> *pointsVector)
+// {
+//     std::vector<PointPtr> *converted_points = new std::vector<PointPtr>;
+//     for (int i = 0; i < pointsVector->size(); i++)
+//     {
+//         PointPtr point = new Point;
+//         point->id = (*pointsVector)[i]->id;
+//         for (int j = 0; j < dimension; j++)
+//         {
+//             point->coords.push_back((*pointsVector)[i]->coords[j]);
+//             point->coords.push_back(j);
+//         }
+//         converted_points->push_back(point);
+//     }
+//     return converted_points;
+// }
+
+// Convert euclidean vector point to discretized curve,
+// projected from 2D space to a single vector of size 2*d.
+std::vector<CurvePtr> *convert_points(int dimension, const std::vector<PointPtr> *point_vector)
+{
+    std::vector<CurvePtr> *curves = new std::vector<CurvePtr>;
+    for (int i = 0; i < point_vector->size(); i++)
+    {
+        CurvePtr curve = new Curve;
+        curve->id = (*point_vector)[i]->id;
+        for (int j = 0; j < dimension; j++)
+        {
+            curve->coords.push_back((*point_vector)[i]->coords[j]); // xi
+            curve->coords.push_back(j);                             // yi
+        }
+        curves->push_back(curve);
+    }
+    return curves;
+}
+
+CurvePtr snap_curve(const CurvePtr curve, int delta, int dimension)
+{
+    //Generate random factor t for each dimension
+    // std::vector<double> t;
+    // for (int i = 0; i < dimension; i++)
+    //     t.push_back(uniformDistributionGenerator(0.0, delta));
+
+    int t;
+    CurvePtr snapped_curve = new Curve;
+    snapped_curve->id = curve->id;
+    for (double x : curve->coords)
+    {
+        t = uniformDistributionGenerator(0.0, delta);
+        snapped_curve->coords.push_back(floor(abs(x - t) / delta + 0.5) * delta + t);
+    }
+
+    return snapped_curve;
+}
