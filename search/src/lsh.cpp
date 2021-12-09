@@ -133,49 +133,54 @@ int main(int argc, char **argv)
                 std::vector<CurvePtr> *queryCurves;
                 get_curves(queryLines, queryCurves);
 
-                // // LSH k nearest neighbor search
-                // std::vector<std::vector<Neighbour> *> k_nearest_neighbours;
-                // k_nearest_neighbours.resize(queryLines.size());
+                // LSH k nearest neighbor search
+                std::vector<std::vector<Neighbour> *> k_nearest_neighbours;
+                k_nearest_neighbours.resize(queryLines.size());
 
-                // std::vector<kNeighboursPtr> queryOutputData;
-                // queryOutputData.resize(queryLines.size());
+                kNeighboursPtr knnOutputData;
 
-                // std::vector<double> tLSH;
-                // tLSH.resize(queryLines.size());
+                std::vector<NeighbourPtr> queryOutputData;
+                queryOutputData.resize(queryLines.size());
+
+                std::vector<double> tLSH;
+                tLSH.resize(queryLines.size());
 
                 // std::cout << "Executing LSH search algorithm..." << std::endl;
 
-                // for (int i = 0; i < queryLines.size(); i++)
-                // {
-                //     auto LSH_start = std::chrono::high_resolution_clock::now();
-                //     queryOutputData[i] = HashTablesObject.HashTables::find_k_nearest_neighbours(queryPoints[i], 1);
-                //     auto LSH_end = std::chrono::high_resolution_clock::now();
-                //     tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
-                // }
-                // double tLSHAverage = 0.0;
-                // for (int i = 0; i < queryLines.size(); i++)
-                //     tLSHAverage += tLSH[i];
+                for (int i = 0; i < queryLines.size(); i++)
+                {
+                    auto LSH_start = std::chrono::high_resolution_clock::now();
+                    knnOutputData = HashTablesObject.HashTables::find_k_nearest_neighbours((*queryCurves)[i], 1);
+                    queryOutputData[i] = knnOutputData->neighbours[0];
+                    auto LSH_end = std::chrono::high_resolution_clock::now();
+                    tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
+                }
+                double tLSHAverage = 0.0;
+                for (int i = 0; i < queryLines.size(); i++)
+                    tLSHAverage += tLSH[i];
 
-                // // Brute force k nearest neighbor search
-                // std::vector<kNeighboursPtr>
-                //     queryTrueNeighbors;
-                // queryTrueNeighbors.resize(queryLines.size());
+                // Brute force k nearest neighbor search
 
-                // std::vector<double> tTrue;
-                // tTrue.resize(queryLines.size());
+                kNeighboursPtr kTrueOutputData;
+                std::vector<NeighbourPtr> queryTrueNeighbors;
+                queryTrueNeighbors.resize(queryLines.size());
 
-                // std::cout << "Executing brute-force search algorithm..." << std::endl;
+                std::vector<double> tTrue;
+                tTrue.resize(queryLines.size());
 
-                // for (int i = 0; i < queryLines.size(); i++)
-                // {
-                //     auto True_start = std::chrono::high_resolution_clock::now();
-                //     queryTrueNeighbors[i] = find_k_true_neighbours(queryPoints[i], 1, inputPoints, SearchData->dimension);
-                //     auto True_end = std::chrono::high_resolution_clock::now();
-                //     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
-                // }
-                // double tTrueAverage = 0.0;
-                // for (int i = 0; i < queryLines.size(); i++)
-                //     tTrueAverage += tLSH[i];
+                std::cout << "Executing brute-force search algorithm..." << std::endl;
+
+                for (int i = 0; i < queryLines.size(); i++)
+                {
+                    auto True_start = std::chrono::high_resolution_clock::now();
+                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, *curves, SearchData->dimension);
+                    queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
+                    auto True_end = std::chrono::high_resolution_clock::now();
+                    tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
+                }
+                double tTrueAverage = 0.0;
+                for (int i = 0; i < queryLines.size(); i++)
+                    tTrueAverage += tLSH[i];
 
                 // // Writing results to outputFile
                 // if (writeToOutput(SearchData, queryPoints, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))
