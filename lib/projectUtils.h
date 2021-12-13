@@ -8,6 +8,7 @@
 #define BIGM (4294967291)
 #define W (5)
 #define DELTA (3)
+#define EPSILON (1)
 
 typedef struct PointStruct *PointPtr;
 typedef struct BucketStruct *BucketPtr;
@@ -71,9 +72,13 @@ kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std
 std::string checkRerun();
 CurvePtr snap_curve(const CurvePtr curve, double delta, std::vector<double> *taf, int dimension);
 
+/// Aii ///
 PointPtr snap_point(const PointPtr point, int delta, int dimension);
 PointPtr concat_point(const PointPtr point, int dimension);
 void remove_dup_points(PointPtr point, int dimension);
 void pad_curve(CurvePtr curve, int dim);
+
+/// Aiii ///
+void filter_point(PointPtr point, int dimension, double epsilon);
 
 #endif

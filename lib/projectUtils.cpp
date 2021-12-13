@@ -332,3 +332,35 @@ void pad_curve(CurvePtr curve, int dim)
         curve->coords.push_back(INT_MAX - 10);
     }
 }
+
+//////////////// Aiii ////////////////
+
+void filter_point(PointPtr point, int dimension, double epsilon)
+{
+    std::vector<int> removedIndex;
+
+    // Precalculate array of distances
+    std::vector<double> dist;
+    for (int i = 0; i < dimension - 1; i++)
+    { // euclidean distance for (x1,y1), (x2,y2) where |y2-y1| = i+1-i = 1
+        dist.push_back(sqrt((point->coords[i + 1] - point->coords[i]) * (point->coords[i + 1] - point->coords[i]) + 1));
+    }
+
+    // Calculate points that need to be removed
+    for (int i = 1; i < dimension; i++)
+    {
+        if (dist[i - 1] <= epsilon && dist[i] <= epsilon)
+        {
+            removedIndex.push_back(i);
+            if (i < dimension - 1 && dist[i] + dist[i + 1] > epsilon)
+            {
+                i++; // Handle consecutive removals
+            }
+        }
+    }
+
+    for (int index : removedIndex)
+    {
+        point->coords.erase(point->coords.begin() + index);
+    }
+}
