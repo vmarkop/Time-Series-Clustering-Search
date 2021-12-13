@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <limits.h>
 
 #define BIGM (4294967291)
 #define W (5)
@@ -68,6 +69,11 @@ void sort_points_str(std::vector<std::string> *Data);
 int notAlreadyExists(kNeighboursPtr k_nearest_neighbours, std::string pointID);
 kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dimension);
 std::string checkRerun();
-CurvePtr snap_curve(const CurvePtr curve_vector, int delta, int dimension);
+CurvePtr snap_curve(const CurvePtr curve, double delta, std::vector<double> *taf, int dimension);
+
+PointPtr snap_point(const PointPtr point, int delta, int dimension);
+PointPtr concat_point(const PointPtr point, int dimension);
+void remove_dup_points(PointPtr point, int dimension);
+void pad_curve(CurvePtr curve, int dim);
 
 #endif

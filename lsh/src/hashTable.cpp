@@ -55,21 +55,6 @@ void HashTables::InsertPoint(PointPtr point)
     }
 }
 
-// Snap curve to grid
-// Then insert it (the non-snapped curve) to HashTables
-void HashTables::InsertCurve(CurvePtr curve)
-{
-    CurvePtr snapped_curve = snap_curve(curve, DELTA, this->dim);
-
-    for (int i = 0; i < this->numOfHashTables; i++)
-    {
-        int id = HashFunc(snapped_curve, i); // Hash based on snapped curve
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].ID.push_back(id);
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(curve); // Insert non-snapped curve
-    }
-    delete snapped_curve; // no longer needed
-}
-
 int HashTables::HashFunc(PointPtr point, int hashtableId)
 {
     int h;
