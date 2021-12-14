@@ -4,12 +4,12 @@
 #include <numeric>
 #include <algorithm> //std::find
 
-#include "lsh_frechet_dsc.h"
+#include "lsh_frechet_cont.h"
 #include "lshUtils.h"
 #include "../../lib/mathUtils.h"
 #include "../../lib/projectUtils.h"
 
-FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize) // Constructor
+FrechetContinuousHashTables::FrechetContinuousHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize) // Constructor
 
 {
     this->numOfHashTables = L;
@@ -47,22 +47,22 @@ FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperpla
     }
 }
 
-void FrechetDiscreteHashTables::FrDscInsertPoint(PointPtr point)
+void FrechetContinuousHashTables::FrContInsertPoint(PointPtr point)
 {
     // (1,x),(2,y),(3,z)
-    PointPtr original_point = concat_point(point, this->dim);
-    PointPtr concated_point = concat_point(point, this->dim);
+    PointPtr concated_point = concat_point(point, this->dim / 2);
     crvPtr _curve = new crv;
     pointToCurve(concated_point, _curve, this->dim / 2);
     for (int i = 0; i < this->numOfHashTables; i++)
     {
-        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim / 2);
-        remove_dup_points(snapped_curve, this->dim / 2);
+        filter_curve(_curve, this->dim / 2, EPSILON);
+        crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim / 2);
+        minimaximize_curve_cont(snapped_curve, this->dim / 2);
         pad_curve_new(snapped_curve, this->dim / 2);
-        curveToPoint(concated_point, _curve, this->dim / 2);
-        int id = FrDscHashFunc(concated_point, i);
+        curveToPoint(concated_point, snapped_curve, this->dim / 2);
+        int id = FrContHashFunc(concated_point, i);
         this->hash_tables[i][euclideanModulo(id, this->TableSize)].ID.push_back(id);
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(original_point);
+        this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(point);
 
         //(r1h1 + r2h2 + r3h3 + r4h4 + r5h5) % m = ((r1h1 % m) + (r2h2 % m) + (r3h3 % m) + (r4h4 % m) + (r5h5 % m)) % m
         // = = = ( ((r1%m * h1%m)) % m + ... + ((r5%m * h5%m)) % m ) % m
@@ -71,7 +71,7 @@ void FrechetDiscreteHashTables::FrDscInsertPoint(PointPtr point)
     }
 }
 
-int FrechetDiscreteHashTables::FrDscHashFunc(PointPtr point, int hashtableId)
+int FrechetContinuousHashTables::FrContHashFunc(PointPtr point, int hashtableId)
 {
     int h;
     int hri = 0;
@@ -85,7 +85,7 @@ int FrechetDiscreteHashTables::FrDscHashFunc(PointPtr point, int hashtableId)
     return euclideanModulo(hri, BIGM);
 }
 
-kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours)
+kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours)
 {
     // PointPtr curPoint;
     // int curDist;
@@ -105,14 +105,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
 
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
-        PointPtr concated_point = concat_point(queryPoint, this->dim);
-        crvPtr _curve = new crv;
-        pointToCurve(concated_point, _curve, this->dim / 2);
-        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim / 2);
-        remove_dup_points(snapped_curve, this->dim / 2);
-        pad_curve_new(snapped_curve, this->dim / 2);
-        curveToPoint(concated_point, _curve, this->dim / 2);
-        int queryID = FrDscHashFunc(concated_point, i);
+        int queryID = this->FrContHashFunc(queryPoint, i);
         int g = euclideanModulo(queryID, this->TableSize);
 
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
@@ -149,14 +142,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
 
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
         {
-            PointPtr concated_point = concat_point(queryPoint, this->dim);
-            crvPtr _curve = new crv;
-            pointToCurve(concated_point, _curve, this->dim / 2);
-            crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim / 2);
-            remove_dup_points(snapped_curve, this->dim / 2);
-            pad_curve_new(snapped_curve, this->dim / 2);
-            curveToPoint(concated_point, _curve, this->dim / 2);
-            int queryID = FrDscHashFunc(concated_point, i);
+            int queryID = this->FrContHashFunc(queryPoint, i);
             int g = euclideanModulo(queryID, this->TableSize);
 
             for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do

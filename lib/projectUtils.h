@@ -14,6 +14,8 @@ typedef struct PointStruct *PointPtr;
 typedef struct BucketStruct *BucketPtr;
 typedef struct NeighbourStruct *NeighbourPtr;
 typedef struct kNeighboursStruct *kNeighboursPtr;
+typedef std::vector<PointPtr> crv;
+typedef std::vector<PointPtr> *crvPtr;
 
 typedef struct PointStruct
 {
@@ -70,15 +72,22 @@ void sort_points_str(std::vector<std::string> *Data);
 int notAlreadyExists(kNeighboursPtr k_nearest_neighbours, std::string pointID);
 kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dimension);
 std::string checkRerun();
-CurvePtr snap_curve(const CurvePtr curve, double delta, std::vector<double> *taf, int dimension);
+crvPtr snap_curve(const crvPtr curve, double delta, std::vector<double> *taf, int dimension);
 
 /// Aii ///
 PointPtr snap_point(const PointPtr point, int delta, int dimension);
+
 PointPtr concat_point(const PointPtr point, int dimension);
-void remove_dup_points(PointPtr point, int dimension);
+void remove_dup_points(crvPtr curve, int dimension);
 void pad_curve(CurvePtr curve, int dim);
+void pad_curve_new(crvPtr curve, int dim);
 
 /// Aiii ///
-void filter_point(PointPtr point, int dimension, double epsilon);
+void filter_curve(crvPtr curve, int dimension, double epsilon);
+crvPtr snap_curve_cont(crvPtr curve, double delta, int dimension);
+void minimaximize_curve_cont(crvPtr _curve, int dimension);
+
+void pointToCurve(PointPtr _p, crvPtr _c, int dimension);
+void curveToPoint(PointPtr _p, crvPtr _c, int dimension);
 
 #endif
