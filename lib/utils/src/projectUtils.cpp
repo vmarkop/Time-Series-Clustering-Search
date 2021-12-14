@@ -1,7 +1,7 @@
 #include <fstream>
 
-#include "projectUtils.h"
-#include "mathUtils.h"
+#include "../inc/projectUtils.h"
+#include "../inc/mathUtils.h"
 
 std::vector<std::string> get_lines(std::string fileName)
 {
@@ -31,7 +31,7 @@ int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *poin
         // separate std::string by Tabs
         // pick every element from 2nd to std::endl
         // read point coordinates
-        PointPtr currPoint = new Point;
+        PointPtr currPoint = new PointStruct;
         std::string word = "";
         dimension = 0;
         for (char x : linesVector[i])
@@ -60,7 +60,7 @@ int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *poin
 PointPtr snap_point(const PointPtr point, int delta, int dimension)
 {
     int t;
-    PointPtr snapped_point = new Point;
+    PointPtr snapped_point = new PointStruct;
     snapped_point->id = point->id;
     for (double x : point->coords)
     {
@@ -184,7 +184,7 @@ std::string checkRerun()
 
 // Save input file lines as a discretized curve,
 // projected from 2D space to a single vector of size 2*d.
-int get_curves(std::vector<std::string> linesVector, std::vector<CurvePtr> *curvesVector)
+int get_curves(std::vector<std::string> linesVector, std::vector<PointPtr> *curvesVector)
 {
     int dimension;
     for (int i = 0; i < linesVector.size(); i++)
@@ -192,7 +192,7 @@ int get_curves(std::vector<std::string> linesVector, std::vector<CurvePtr> *curv
         // separate std::string by Tabs
         // pick every element from 2nd to std::endl
         // read point coordinates
-        CurvePtr currCurve = new Curve;
+        PointPtr currCurve = new PointStruct;
         std::string word = "";
         dimension = 0;
         // for (char x : linesVector[i])
@@ -243,12 +243,12 @@ int get_curves(std::vector<std::string> linesVector, std::vector<CurvePtr> *curv
 
 // Convert euclidean vector point to discretized curve,
 // projected from 2D space to a single vector of size 2*d.
-std::vector<CurvePtr> *convert_points(int dimension, const std::vector<PointPtr> *point_vector)
+std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr> *point_vector)
 {
-    std::vector<CurvePtr> *curves = new std::vector<CurvePtr>;
+    std::vector<PointPtr> *curves = new std::vector<PointPtr>;
     for (int i = 0; i < point_vector->size(); i++)
     {
-        CurvePtr curve = new Curve;
+        PointPtr curve = new PointStruct;
         curve->id = (*point_vector)[i]->id;
         for (int j = 0; j < dimension; j++)
         {
@@ -293,7 +293,7 @@ crvPtr snap_curve_cont(crvPtr curve, double delta, int dimension)
 
 PointPtr concat_point(const PointPtr point, int dimension)
 {
-    PointPtr concatd_point = new Point;
+    PointPtr concatd_point = new PointStruct;
     concatd_point->id = point->id;
     concatd_point->coords.resize(2 * dimension);
     for (int i = 0; i < dimension / 2; i++)
@@ -333,7 +333,7 @@ void remove_dup_points(crvPtr curve, int dimension)
     }
 }
 
-void pad_curve(CurvePtr curve, int dim)
+void pad_curve(PointPtr curve, int dim)
 {
     int curveSize = curve->coords.size();
     for (int i = curveSize; i < dim; i++)
@@ -348,7 +348,7 @@ void pad_curve_new(crvPtr curve, int dim)
     int curveSize = curve->size();
     for (int i = curveSize; i < dim; i++)
     {
-        PointPtr _point = new Point;
+        PointPtr _point = new PointStruct;
         _point->coords.resize(2);
         _point->coords[0] = INT_MAX - 10;
         _point->coords[1] = INT_MAX - 10;
@@ -412,7 +412,7 @@ void pointToCurve(PointPtr _p, crvPtr _c, int dimension)
     (*_c).resize(dimension);
     for (int i = 0; i < dimension; i++)
     {
-        (*_c)[i] = new Point;
+        (*_c)[i] = new PointStruct;
         (*_c)[i]->id = _p->id;
         (*_c)[i]->coords.resize(2);
         (*_c)[i]->coords[0] = _p->coords[i * 2];
@@ -427,4 +427,32 @@ void curveToPoint(PointPtr _p, crvPtr _c, int dimension)
         _p->coords[i * 2] = (*_c)[i]->coords[0];
         _p->coords[(i * 2) + 1] = (*_c)[i]->coords[1];
     }
+}
+
+double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension)
+{
+    Curve *fp = convertToFredCurve(p, dimension);
+    Curve *fq = convertToFredCurve(q, dimension);
+
+    struct Frechet::Continuous::Distance dist = Frechet::Continuous::distance(*fp, *fq);
+    delete fp;
+    delete fq;
+    return dist.value;
+    // turn point p to Fred Curve
+    // turn point q to Fred Curve
+    // call Fred Cont Dist
+    // return Fred Cont Dist
+}
+
+Curve *convertToFredCurve(PointPtr p, int dim)
+{
+    Points fp(1);
+    for (int i = 0; i < dim; i++)
+    {
+        Point t(p->coords[i]);
+        fp.add(t);
+    }
+
+    Curve *curve = new Curve(fp);
+    return curve;
 }

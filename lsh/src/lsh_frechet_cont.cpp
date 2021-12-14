@@ -115,7 +115,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
             {
 
                 currNeighbour->point = this->hash_tables[i][g].points[j];
-                currNeighbour->dist = DFDistance(queryPoint, currNeighbour->point, this->dim);
+                currNeighbour->dist = ContinuousFrechetDistance(queryPoint, currNeighbour->point, this->dim);
                 // if dist(q,p) < db then b <- p; db <- dist(q,p)
                 if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                 {
