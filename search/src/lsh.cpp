@@ -112,6 +112,18 @@ int main(int argc, char **argv)
         {
             if (SearchData->metric == MTR_DISC)
             {
+
+                // Getting points from lines
+                std::vector<PointPtr> inputPoints;
+                SearchData->dimension = get_points(inputLines, &inputPoints);
+                int numOfInputPoints = inputPoints.size();
+
+                std::vector<PointPtr> snappedPoints;
+                for (int i = 0; i < numOfInputPoints; i++)
+                    snappedPoints.push_back(snap_point(inputPoints[i], DELTA, SearchData->dimension));
+
+                std::vector<PointPtr> removedDupPoints;
+
                 // Turning points from lines into 2d-projected curves
                 std::vector<CurvePtr> *curves;
                 SearchData->dimension = get_curves(inputLines, curves);

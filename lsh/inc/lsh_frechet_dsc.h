@@ -17,6 +17,8 @@ private:
     std::vector<std::vector<int>> ri; // r=(-100,100)
     std::vector<std::vector<double>> t;
     std::vector<std::vector<std::vector<double>>> v;
+    std::vector<std::vector<double>> _taf;
+    double _delta;
 
 public:
     FrechetDiscreteHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize); // Constructor

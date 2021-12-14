@@ -57,6 +57,20 @@ int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *poin
     return dimension;
 }
 
+PointPtr snap_point(const PointPtr point, int delta, int dimension)
+{
+    int t;
+    PointPtr snapped_point = new Point;
+    snapped_point->id = point->id;
+    for (double x : point->coords)
+    {
+        t = uniformDistributionGenerator(0.0, delta);
+        snapped_point->coords.push_back(floor(abs(x - t) / delta + 0.5) * delta + t);
+    }
+
+    return snapped_point;
+}
+
 void sort_neighbours(kNeighboursPtr k_nearest_neighbours, int k_neighbours) // sort distance in a vector of k distances
 {
     int k = k_neighbours; // number of neighbours
@@ -246,21 +260,107 @@ std::vector<CurvePtr> *convert_points(int dimension, const std::vector<PointPtr>
     return curves;
 }
 
-CurvePtr snap_curve(const CurvePtr curve, int delta, int dimension)
+CurvePtr snap_curve(const CurvePtr curve, double delta, std::vector<double> *taf, int dimension)
 {
     //Generate random factor t for each dimension
     // std::vector<double> t;
     // for (int i = 0; i < dimension; i++)
     //     t.push_back(uniformDistributionGenerator(0.0, delta));
 
-    int t;
     CurvePtr snapped_curve = new Curve;
     snapped_curve->id = curve->id;
-    for (double x : curve->coords)
+    snapped_curve->coords.resize(dimension);
+    for (int i = 0; i < dimension / 2; i++)
     {
-        t = uniformDistributionGenerator(0.0, delta);
-        snapped_curve->coords.push_back(floor(abs(x - t) / delta + 0.5) * delta + t);
+        snapped_curve->coords[i * 2] = (floor(abs(curve->coords[i * 2] - (*taf)[0]) / delta + 0.5) * delta + (*taf)[0]);
+    }
+    for (int i = 0; i < dimension / 2; i++)
+    {
+        snapped_curve->coords[(i * 2) + 1] = (floor(abs(curve->coords[(i * 2) + 1] - (*taf)[1]) / delta + 0.5) * delta + (*taf)[1]);
     }
 
     return snapped_curve;
+}
+
+PointPtr concat_point(const PointPtr point, int dimension)
+{
+    PointPtr concatd_point = new Point;
+    concatd_point->id = point->id;
+    concatd_point->coords.resize(2 * dimension);
+    for (int i = 0; i < dimension / 2; i++)
+    {
+        concatd_point->coords[i * 2] = point->coords[i * 2];
+    }
+    for (int i = 0; i < dimension / 2; i++)
+    {
+        concatd_point->coords[(i * 2) + 1] = i;
+    }
+
+    return concatd_point;
+}
+
+void remove_dup_points(PointPtr point, int dimension)
+{
+    std::vector<int> removedIndex;
+    double prev[2];
+    prev[0] = point->coords[0];
+    prev[1] = point->coords[1];
+    for (int i = 1; i < dimension / 2; i++)
+    {
+        if (point->coords[i * 2] == prev[0] && point->coords[(i * 2) + 1] == prev[1])
+        {
+            removedIndex.push_back(i * 2);
+            removedIndex.push_back((i * 2) + 1);
+        }
+        else
+        {
+            prev[0] = point->coords[i * 2];
+            prev[1] = point->coords[(i * 2) + 1];
+        }
+    }
+    for (int index : removedIndex)
+    {
+        point->coords.erase(point->coords.begin() + index);
+    }
+}
+
+void pad_curve(CurvePtr curve, int dim)
+{
+    int curveSize = curve->coords.size();
+    for (int i = curveSize; i < dim; i++)
+    {
+        curve->coords.push_back(INT_MAX - 10);
+    }
+}
+
+//////////////// Aiii ////////////////
+
+void filter_point(PointPtr point, int dimension, double epsilon)
+{
+    std::vector<int> removedIndex;
+
+    // Precalculate array of distances
+    std::vector<double> dist;
+    for (int i = 0; i < dimension - 1; i++)
+    { // euclidean distance for (x1,y1), (x2,y2) where |y2-y1| = i+1-i = 1
+        dist.push_back(sqrt((point->coords[i + 1] - point->coords[i]) * (point->coords[i + 1] - point->coords[i]) + 1));
+    }
+
+    // Calculate points that need to be removed
+    for (int i = 1; i < dimension; i++)
+    {
+        if (dist[i - 1] <= epsilon && dist[i] <= epsilon)
+        {
+            removedIndex.push_back(i);
+            if (i < dimension - 1 && dist[i] + dist[i + 1] > epsilon)
+            {
+                i++; // Handle consecutive removals
+            }
+        }
+    }
+
+    for (int index : removedIndex)
+    {
+        point->coords.erase(point->coords.begin() + index);
+    }
 }

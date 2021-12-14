@@ -18,6 +18,10 @@ double euclideanDistance(const PointPtr x, const PointPtr y, int dimension)
     return sqrt(dist);
 }
 
+double DFDistance(PointPtr x, PointPtr y, int dimension)
+{
+}
+
 double uniformDistributionGenerator(const double alpha, const double beta)
 {
     // Source: https://www.cplusplus.com/reference/random/normal_distribution/
