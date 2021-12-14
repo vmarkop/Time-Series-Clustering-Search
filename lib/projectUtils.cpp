@@ -260,23 +260,32 @@ std::vector<CurvePtr> *convert_points(int dimension, const std::vector<PointPtr>
     return curves;
 }
 
-CurvePtr snap_curve(const CurvePtr curve, double delta, std::vector<double> *taf, int dimension)
+crvPtr snap_curve(const crvPtr curve, double delta, std::vector<double> *taf, int dimension)
 {
     //Generate random factor t for each dimension
     // std::vector<double> t;
     // for (int i = 0; i < dimension; i++)
     //     t.push_back(uniformDistributionGenerator(0.0, delta));
 
-    CurvePtr snapped_curve = new Curve;
-    snapped_curve->id = curve->id;
-    snapped_curve->coords.resize(dimension);
-    for (int i = 0; i < dimension / 2; i++)
+    crvPtr snapped_curve = new crv;
+    snapped_curve->resize(dimension);
+    for (int i = 0; i < dimension; i++)
     {
-        snapped_curve->coords[i * 2] = (floor(abs(curve->coords[i * 2] - (*taf)[0]) / delta + 0.5) * delta + (*taf)[0]);
+        (*snapped_curve)[i]->coords[0] = (floor(abs((*curve)[i]->coords[0] - (*taf)[0]) / delta + 0.5) * delta + (*taf)[0]);
+        (*snapped_curve)[i]->coords[1] = (floor(abs((*curve)[i]->coords[1] - (*taf)[1]) / delta + 0.5) * delta + (*taf)[1]);
     }
-    for (int i = 0; i < dimension / 2; i++)
+
+    return snapped_curve;
+}
+
+crvPtr snap_curve_cont(crvPtr curve, double delta, int dimension)
+{
+    crvPtr snapped_curve = new crv;
+    snapped_curve->resize(dimension);
+    for (int i = 0; i < dimension; i++)
     {
-        snapped_curve->coords[(i * 2) + 1] = (floor(abs(curve->coords[(i * 2) + 1] - (*taf)[1]) / delta + 0.5) * delta + (*taf)[1]);
+        (*snapped_curve)[i]->coords[0] = floor((*curve)[i]->coords[0] / delta) * delta;
+        (*snapped_curve)[i]->coords[1] = floor((*curve)[i]->coords[1] / delta) * delta;
     }
 
     return snapped_curve;
@@ -299,28 +308,28 @@ PointPtr concat_point(const PointPtr point, int dimension)
     return concatd_point;
 }
 
-void remove_dup_points(PointPtr point, int dimension)
+void remove_dup_points(crvPtr curve, int dimension)
 {
     std::vector<int> removedIndex;
     double prev[2];
-    prev[0] = point->coords[0];
-    prev[1] = point->coords[1];
+    prev[0] = (*curve)[0]->coords[0];
+    prev[1] = (*curve)[0]->coords[1];
     for (int i = 1; i < dimension / 2; i++)
     {
-        if (point->coords[i * 2] == prev[0] && point->coords[(i * 2) + 1] == prev[1])
+        if ((*curve)[i]->coords[0] == prev[0] && (*curve)[i]->coords[1] == prev[1])
         {
-            removedIndex.push_back(i * 2);
-            removedIndex.push_back((i * 2) + 1);
+            removedIndex.push_back(i);
         }
         else
         {
-            prev[0] = point->coords[i * 2];
-            prev[1] = point->coords[(i * 2) + 1];
+            prev[0] = (*curve)[i]->coords[0];
+            prev[1] = (*curve)[i]->coords[1];
         }
     }
     for (int index : removedIndex)
     {
-        point->coords.erase(point->coords.begin() + index);
+        delete (*curve)[index];
+        curve->erase(curve->begin() + index);
     }
 }
 
@@ -329,38 +338,93 @@ void pad_curve(CurvePtr curve, int dim)
     int curveSize = curve->coords.size();
     for (int i = curveSize; i < dim; i++)
     {
+
         curve->coords.push_back(INT_MAX - 10);
+    }
+}
+
+void pad_curve_new(crvPtr curve, int dim)
+{
+    int curveSize = curve->size();
+    for (int i = curveSize; i < dim; i++)
+    {
+        PointPtr _point = new Point;
+        _point->coords.resize(2);
+        _point->coords[0] = INT_MAX - 10;
+        _point->coords[1] = INT_MAX - 10;
+        curve->push_back(_point);
     }
 }
 
 //////////////// Aiii ////////////////
 
-void filter_point(PointPtr point, int dimension, double epsilon)
+void filter_curve(crvPtr curve, int dimension, double epsilon)
 {
-    std::vector<int> removedIndex;
-
-    // Precalculate array of distances
-    std::vector<double> dist;
-    for (int i = 0; i < dimension - 1; i++)
-    { // euclidean distance for (x1,y1), (x2,y2) where |y2-y1| = i+1-i = 1
-        dist.push_back(sqrt((point->coords[i + 1] - point->coords[i]) * (point->coords[i + 1] - point->coords[i]) + 1));
-    }
-
     // Calculate points that need to be removed
-    for (int i = 1; i < dimension; i++)
+    for (int i = 1, index = 1; i < dimension - 1; i++)
     {
-        if (dist[i - 1] <= epsilon && dist[i] <= epsilon)
+        if (euclideanDistance((*curve)[index], (*curve)[index - 1], 2) <= epsilon && euclideanDistance((*curve)[index], (*curve)[index + 1], 2) <= epsilon)
+        {
+            delete (*curve)[index];
+            curve->erase(curve->begin() + index);
+        }
+        else
+            index++;
+    }
+}
+
+void minimaximize_curve_cont(crvPtr _curve, int dimension)
+{
+    // We keep only dimension [1] (x,y,z,...)
+    // if y>x and y<z, mark for removal
+    // goto next
+
+    // std::vector<double> y_points;
+    // for (int i = 0; i < dimension; i++)
+    // {
+    //     y_points.push_back(point->coords[2 * i + 1]);
+    // }
+
+    std::vector<int> removedIndex;
+    for (int i = 1; i < dimension - 1; i++)
+    {
+        if ((*_curve)[i]->coords[1] > (*_curve)[i - 1]->coords[1] && (*_curve)[i]->coords[1] < (*_curve)[i + 1]->coords[1])
         {
             removedIndex.push_back(i);
-            if (i < dimension - 1 && dist[i] + dist[i + 1] > epsilon)
-            {
-                i++; // Handle consecutive removals
-            }
         }
     }
 
     for (int index : removedIndex)
     {
-        point->coords.erase(point->coords.begin() + index);
+        delete (*_curve)[index];
+        _curve->erase(_curve->begin() + index);
+    }
+}
+
+void pointToCurve(PointPtr _p, crvPtr _c, int dimension)
+{
+    if (_p == NULL)
+    {
+        std::cerr << "Structs have not been initialized!\n Cannot make conversion!" << std::endl;
+        return;
+    }
+
+    (*_c).resize(dimension);
+    for (int i = 0; i < dimension; i++)
+    {
+        (*_c)[i] = new Point;
+        (*_c)[i]->id = _p->id;
+        (*_c)[i]->coords.resize(2);
+        (*_c)[i]->coords[0] = _p->coords[i * 2];
+        (*_c)[i]->coords[1] = _p->coords[(i * 2) + 1];
+    }
+}
+
+void curveToPoint(PointPtr _p, crvPtr _c, int dimension)
+{
+    for (int i = 0; i < dimension; i++)
+    {
+        _p->coords[i * 2] = (*_c)[i]->coords[0];
+        _p->coords[(i * 2) + 1] = (*_c)[i]->coords[1];
     }
 }
