@@ -50,19 +50,20 @@ FrechetContinuousHashTables::FrechetContinuousHashTables(int L, int numberOfHype
 void FrechetContinuousHashTables::FrContInsertPoint(PointPtr point)
 {
     // (1,x),(2,y),(3,z)
-    PointPtr concated_point = concat_point(point, this->dim / 2);
+    PointPtr concated_point = concat_point(point, this->dim);
+    PointPtr original_point = concat_point(point, this->dim);
     crvPtr _curve = new crv;
-    pointToCurve(concated_point, _curve, this->dim / 2);
+    pointToCurve(concated_point, _curve, this->dim);
     for (int i = 0; i < this->numOfHashTables; i++)
     {
-        filter_curve(_curve, this->dim / 2, EPSILON);
-        crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim / 2);
-        minimaximize_curve_cont(snapped_curve, this->dim / 2);
-        pad_curve_new(snapped_curve, this->dim / 2);
-        curveToPoint(concated_point, snapped_curve, this->dim / 2);
+        filter_curve(_curve, this->dim, EPSILON);
+        crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim);
+        minimaximize_curve_cont(snapped_curve, this->dim);
+        pad_curve_new(snapped_curve, this->dim);
+        curveToPoint(concated_point, snapped_curve, this->dim);
         int id = FrContHashFunc(concated_point, i);
         this->hash_tables[i][euclideanModulo(id, this->TableSize)].ID.push_back(id);
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(point);
+        this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(original_point);
 
         //(r1h1 + r2h2 + r3h3 + r4h4 + r5h5) % m = ((r1h1 % m) + (r2h2 % m) + (r3h3 % m) + (r4h4 % m) + (r5h5 % m)) % m
         // = = = ( ((r1%m * h1%m)) % m + ... + ((r5%m * h5%m)) % m ) % m
@@ -87,6 +88,8 @@ int FrechetContinuousHashTables::FrContHashFunc(PointPtr point, int hashtableId)
 
 kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours)
 {
+
+    PointPtr originalQueryPoint = concat_point(point, this->dim);
     // PointPtr curPoint;
     // int curDist;
     int count = 0;
@@ -105,7 +108,15 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
 
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
-        int queryID = this->FrContHashFunc(queryPoint, i);
+        PointPtr concated_point = concat_point(point, this->dim);
+        crvPtr _curve = new crv;
+        pointToCurve(concated_point, _curve, this->dim);
+        filter_curve(_curve, this->dim, EPSILON);
+        crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim);
+        minimaximize_curve_cont(snapped_curve, this->dim);
+        pad_curve_new(snapped_curve, this->dim);
+        curveToPoint(concated_point, snapped_curve, this->dim);
+        int queryID = this->FrContHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
 
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
@@ -115,7 +126,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
             {
 
                 currNeighbour->point = this->hash_tables[i][g].points[j];
-                currNeighbour->dist = ContinuousFrechetDistance(queryPoint, currNeighbour->point, this->dim);
+                currNeighbour->dist = ContinuousFrechetDistance(originalQueryPoint, currNeighbour->point, this->dim);
                 // if dist(q,p) < db then b <- p; db <- dist(q,p)
                 if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                 {
@@ -142,7 +153,16 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
 
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
         {
-            int queryID = this->FrContHashFunc(queryPoint, i);
+            PointPtr concated_point = concat_point(point, this->dim);
+            crvPtr _curve = new crv;
+            pointToCurve(concated_point, _curve, this->dim);
+            filter_curve(_curve, this->dim, EPSILON);
+            crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim);
+            minimaximize_curve_cont(snapped_curve, this->dim);
+            pad_curve_new(snapped_curve, this->dim);
+            curveToPoint(concated_point, snapped_curve, this->dim);
+            int queryID = this->FrContHashFunc(concated_point, i);
+            int queryID = this->FrContHashFunc(concated_point, i);
             int g = euclideanModulo(queryID, this->TableSize);
 
             for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
@@ -152,7 +172,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
                 {
 
                     currNeighbour->point = this->hash_tables[i][g].points[j];
-                    currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, this->dim);
+                    currNeighbour->dist = euclideanDistance(originalQueryPoint, currNeighbour->point, this->dim);
                     // if dist(q,p) < db then b <- p; db <- dist(q,p)
                     if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                     {

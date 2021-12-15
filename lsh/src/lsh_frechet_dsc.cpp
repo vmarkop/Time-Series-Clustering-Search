@@ -5,9 +5,6 @@
 #include <algorithm> //std::find
 
 #include "lsh_frechet_dsc.h"
-#include "lshUtils.h"
-#include "../../lib/mathUtils.h"
-#include "../../lib/projectUtils.h"
 
 FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize) // Constructor
 
@@ -17,7 +14,7 @@ FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperpla
     this->numberOfPoints = numberOfPoints;
     this->TableSize = tableSize;
 
-    this->dim = dimension * 2;
+    this->dim = dimension;
     this->hash_tables.resize(L);
     this->t.resize(L);
     this->ri.resize(L);
@@ -53,13 +50,13 @@ void FrechetDiscreteHashTables::FrDscInsertPoint(PointPtr point)
     PointPtr original_point = concat_point(point, this->dim);
     PointPtr concated_point = concat_point(point, this->dim);
     crvPtr _curve = new crv;
-    pointToCurve(concated_point, _curve, this->dim / 2);
+    pointToCurve(concated_point, _curve, this->dim);
     for (int i = 0; i < this->numOfHashTables; i++)
     {
-        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim / 2);
-        remove_dup_points(snapped_curve, this->dim / 2);
-        pad_curve_new(snapped_curve, this->dim / 2);
-        curveToPoint(concated_point, _curve, this->dim / 2);
+        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim);
+        remove_dup_points(snapped_curve, this->dim);
+        pad_curve_new(snapped_curve, this->dim);
+        curveToPoint(concated_point, _curve, this->dim);
         int id = FrDscHashFunc(concated_point, i);
         this->hash_tables[i][euclideanModulo(id, this->TableSize)].ID.push_back(id);
         this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(original_point);
@@ -87,6 +84,8 @@ int FrechetDiscreteHashTables::FrDscHashFunc(PointPtr point, int hashtableId)
 
 kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours)
 {
+
+    PointPtr originalQueryPoint = concat_point(point, this->dim);
     // PointPtr curPoint;
     // int curDist;
     int count = 0;
@@ -107,11 +106,11 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
     {
         PointPtr concated_point = concat_point(queryPoint, this->dim);
         crvPtr _curve = new crv;
-        pointToCurve(concated_point, _curve, this->dim / 2);
-        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim / 2);
-        remove_dup_points(snapped_curve, this->dim / 2);
-        pad_curve_new(snapped_curve, this->dim / 2);
-        curveToPoint(concated_point, _curve, this->dim / 2);
+        pointToCurve(concated_point, _curve, this->dim);
+        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim);
+        remove_dup_points(snapped_curve, this->dim);
+        pad_curve_new(snapped_curve, this->dim);
+        curveToPoint(concated_point, _curve, this->dim);
         int queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
 
@@ -122,7 +121,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
             {
 
                 currNeighbour->point = this->hash_tables[i][g].points[j];
-                currNeighbour->dist = DFDistance(queryPoint, currNeighbour->point, this->dim);
+                currNeighbour->dist = DFDistance(originalQueryPoint, currNeighbour->point, this->dim);
                 // if dist(q,p) < db then b <- p; db <- dist(q,p)
                 if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                 {
@@ -166,7 +165,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                 {
 
                     currNeighbour->point = this->hash_tables[i][g].points[j];
-                    currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, this->dim);
+                    currNeighbour->dist = euclideanDistance(originalQueryPoint, currNeighbour->point, this->dim);
                     // if dist(q,p) < db then b <- p; db <- dist(q,p)
                     if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                     {
