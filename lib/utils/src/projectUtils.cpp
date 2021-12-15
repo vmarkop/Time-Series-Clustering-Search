@@ -213,7 +213,7 @@ int get_curves(std::vector<std::string> linesVector, std::vector<PointPtr> *curv
             }
             else
             {
-                word = word + linesVector[i][j]; //x;
+                word = word + linesVector[i][j]; // x;
             }
         }
 
@@ -262,10 +262,10 @@ std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr>
 
 crvPtr snap_curve(const crvPtr curve, double delta, std::vector<double> *taf, int dimension)
 {
-    //Generate random factor t for each dimension
-    // std::vector<double> t;
-    // for (int i = 0; i < dimension; i++)
-    //     t.push_back(uniformDistributionGenerator(0.0, delta));
+    // Generate random factor t for each dimension
+    //  std::vector<double> t;
+    //  for (int i = 0; i < dimension; i++)
+    //      t.push_back(uniformDistributionGenerator(0.0, delta));
 
     crvPtr snapped_curve = new crv;
     snapped_curve->resize(dimension);
@@ -296,11 +296,11 @@ PointPtr concat_point(const PointPtr point, int dimension)
     PointPtr concatd_point = new PointStruct;
     concatd_point->id = point->id;
     concatd_point->coords.resize(2 * dimension);
-    for (int i = 0; i < dimension / 2; i++)
+    for (int i = 0; i < dimension; i++)
     {
         concatd_point->coords[i * 2] = point->coords[i * 2];
     }
-    for (int i = 0; i < dimension / 2; i++)
+    for (int i = 0; i < dimension; i++)
     {
         concatd_point->coords[(i * 2) + 1] = i;
     }
@@ -314,7 +314,7 @@ void remove_dup_points(crvPtr curve, int dimension)
     double prev[2];
     prev[0] = (*curve)[0]->coords[0];
     prev[1] = (*curve)[0]->coords[1];
-    for (int i = 1; i < dimension / 2; i++)
+    for (int i = 1; i < dimension; i++)
     {
         if ((*curve)[i]->coords[0] == prev[0] && (*curve)[i]->coords[1] == prev[1])
         {

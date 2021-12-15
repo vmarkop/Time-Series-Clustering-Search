@@ -10,6 +10,7 @@
 
 #include "hashTable.h"
 #include "lsh_frechet_dsc.h"
+#include "lsh_frechet_cont.h"
 #include "mathUtils.h"
 #include "lshUtils.h"
 
@@ -58,17 +59,18 @@ int main(int argc, char **argv)
 
             // LSH k nearest neighbor search
             std::vector<std::vector<Neighbour> *> k_nearest_neighbours;
-            k_nearest_neighbours.resize(queryLines.size());
+            int numOfQueries = queryLines.size();
+            k_nearest_neighbours.resize(numOfQueries);
 
             std::vector<kNeighboursPtr> queryOutputData;
-            queryOutputData.resize(queryLines.size());
+            queryOutputData.resize(numOfQueries);
 
             std::vector<double> tLSH;
-            tLSH.resize(queryLines.size());
+            tLSH.resize(numOfQueries);
 
             std::cout << "Executing LSH search algorithm..." << std::endl;
 
-            for (int i = 0; i < queryLines.size(); i++)
+            for (int i = 0; i < numOfQueries; i++)
             {
                 auto LSH_start = std::chrono::high_resolution_clock::now();
                 queryOutputData[i] = HashTablesObject.HashTables::find_k_nearest_neighbours(queryPoints[i], 1);
@@ -76,20 +78,20 @@ int main(int argc, char **argv)
                 tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
             }
             double tLSHAverage = 0.0;
-            for (int i = 0; i < queryLines.size(); i++)
+            for (int i = 0; i < numOfQueries; i++)
                 tLSHAverage += tLSH[i];
 
             // Brute force k nearest neighbor search
             std::vector<kNeighboursPtr>
                 queryTrueNeighbors;
-            queryTrueNeighbors.resize(queryLines.size());
+            queryTrueNeighbors.resize(numOfQueries);
 
             std::vector<double> tTrue;
-            tTrue.resize(queryLines.size());
+            tTrue.resize(numOfQueries);
 
             std::cout << "Executing brute-force search algorithm..." << std::endl;
 
-            for (int i = 0; i < queryLines.size(); i++)
+            for (int i = 0; i < numOfQueries; i++)
             {
                 auto True_start = std::chrono::high_resolution_clock::now();
                 queryTrueNeighbors[i] = find_k_true_neighbours(queryPoints[i], 1, inputPoints, SearchData->dimension);
@@ -97,7 +99,7 @@ int main(int argc, char **argv)
                 tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
             }
             double tTrueAverage = 0.0;
-            for (int i = 0; i < queryLines.size(); i++)
+            for (int i = 0; i < numOfQueries; i++)
                 tTrueAverage += tLSH[i];
 
             // Writing results to outputFile
@@ -118,48 +120,48 @@ int main(int argc, char **argv)
                 SearchData->dimension = get_points(inputLines, &inputPoints);
                 int numOfInputPoints = inputPoints.size();
 
-                std::vector<PointPtr> snappedPoints;
-                for (int i = 0; i < numOfInputPoints; i++)
-                    snappedPoints.push_back(snap_point(inputPoints[i], DELTA, SearchData->dimension));
+                // std::vector<PointPtr> snappedPoints;
+                // for (int i = 0; i < numOfInputPoints; i++)
+                //     snappedPoints.push_back(snap_point(inputPoints[i], DELTA, SearchData->dimension));
 
-                std::vector<PointPtr> removedDupPoints;
+                // std::vector<PointPtr> removedDupPoints;
 
-                // Turning points from lines into 2d-projected curves
-                std::vector<CurvePtr> *curves;
-                SearchData->dimension = get_curves(inputLines, curves);
-                int numOfInputPoints = curves->size();
+                // // Turning points from lines into 2d-projected curves
+                // std::vector<CurvePtr> *curves;
+                // SearchData->dimension = get_curves(inputLines, curves);
+                // int numOfInputPoints = curves->size();
 
                 // Create HashTablesObject that stores curves, projected to vectors of size 2*dim
-                HashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
+                FrechetDiscreteHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
 
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
-                for (int i = 0; i < curves->size(); i++)
-                    HashTablesObject.HashTables::InsertCurve((*curves)[i]);
+                for (int i = 0; i < numOfInputPoints; i++)
+                    HashTablesObject.HashTables::InsertCurve(inputPoints[i]);
 
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
                 std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
 
                 // Getting curves from query lines
-                std::vector<CurvePtr> *queryCurves;
+                std::vector<PointPtr> *queryCurves;
                 get_curves(queryLines, queryCurves);
-
+                int numOfQueries = queryLines.size();
                 // LSH k nearest neighbor search
                 std::vector<std::vector<Neighbour> *> k_nearest_neighbours;
-                k_nearest_neighbours.resize(queryLines.size());
+                k_nearest_neighbours.resize(numOfQueries);
 
                 kNeighboursPtr knnOutputData;
 
                 std::vector<NeighbourPtr> queryOutputData;
-                queryOutputData.resize(queryLines.size());
+                queryOutputData.resize(numOfQueries);
 
                 std::vector<double> tLSH;
-                tLSH.resize(queryLines.size());
+                tLSH.resize(numOfQueries);
 
                 // std::cout << "Executing LSH search algorithm..." << std::endl;
 
-                for (int i = 0; i < queryLines.size(); i++)
+                for (int i = 0; i < numOfQueries; i++)
                 {
                     auto LSH_start = std::chrono::high_resolution_clock::now();
                     knnOutputData = HashTablesObject.HashTables::find_k_nearest_neighbours((*queryCurves)[i], 1);
@@ -168,30 +170,30 @@ int main(int argc, char **argv)
                     tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
                 }
                 double tLSHAverage = 0.0;
-                for (int i = 0; i < queryLines.size(); i++)
+                for (int i = 0; i < numOfQueries; i++)
                     tLSHAverage += tLSH[i];
 
                 // Brute force k nearest neighbor search
 
                 kNeighboursPtr kTrueOutputData;
                 std::vector<NeighbourPtr> queryTrueNeighbors;
-                queryTrueNeighbors.resize(queryLines.size());
+                queryTrueNeighbors.resize(numOfQueries);
 
                 std::vector<double> tTrue;
-                tTrue.resize(queryLines.size());
+                tTrue.resize(numOfQueries);
 
                 std::cout << "Executing brute-force search algorithm..." << std::endl;
 
-                for (int i = 0; i < queryLines.size(); i++)
+                for (int i = 0; i < numOfQueries; i++)
                 {
                     auto True_start = std::chrono::high_resolution_clock::now();
-                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, *curves, SearchData->dimension);
+                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, *inputPoints, SearchData->dimension);
                     queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
                     auto True_end = std::chrono::high_resolution_clock::now();
                     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
                 }
                 double tTrueAverage = 0.0;
-                for (int i = 0; i < queryLines.size(); i++)
+                for (int i = 0; i < numOfQueries; i++)
                     tTrueAverage += tLSH[i];
 
                 // // Writing results to outputFile
@@ -204,6 +206,76 @@ int main(int argc, char **argv)
             }
             else if (SearchData->metric == MTR_CONT)
             {
+                // Getting points from lines
+                std::vector<PointPtr> inputPoints;
+                SearchData->dimension = get_points(inputLines, &inputPoints);
+                int numOfInputPoints = inputPoints.size();
+
+                // Create HashTablesObject that stores curves, projected to vectors of size 2*dim
+                FrechetContinuousHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
+
+                // Inserting curves to hash table, after snapping them
+                std::cout << "Inserting items to hash table..." << std::endl;
+                for (int i = 0; i < numOfInputPoints; i++)
+                    HashTablesObjec.FrechetContinuousHashTables::InsertCurve(inputPoints[i]);
+
+                // Getting lines from query file
+                std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
+                std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
+
+                // Getting curves from query lines
+                std::vector<PointPtr> *queryCurves;
+                get_curves(queryLines, queryCurves);
+
+                // LSH k nearest neighbor search
+                std::vector<std::vector<Neighbour> *> k_nearest_neighbours;
+                int numOfQueries = queryLines.size();
+                k_nearest_neighbours.resize(numOfQueries);
+
+                kNeighboursPtr knnOutputData;
+
+                std::vector<NeighbourPtr> queryOutputData;
+                queryOutputData.resize(numOfQueries);
+
+                std::vector<double> tLSH;
+                tLSH.resize(numOfQueries);
+
+                // std::cout << "Executing LSH search algorithm..." << std::endl;
+
+                for (int i = 0; i < numOfQueries; i++)
+                {
+                    auto LSH_start = std::chrono::high_resolution_clock::now();
+                    knnOutputData = HashTablesObject.HashTables::find_k_nearest_neighbours((*queryCurves)[i], 1);
+                    queryOutputData[i] = knnOutputData->neighbours[0];
+                    auto LSH_end = std::chrono::high_resolution_clock::now();
+                    tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
+                }
+                double tLSHAverage = 0.0;
+                for (int i = 0; i < numOfQueries; i++)
+                    tLSHAverage += tLSH[i];
+
+                // Brute force k nearest neighbor search
+
+                kNeighboursPtr kTrueOutputData;
+                std::vector<NeighbourPtr> queryTrueNeighbors;
+                queryTrueNeighbors.resize(numOfQueries);
+
+                std::vector<double> tTrue;
+                tTrue.resize(numOfQueries);
+
+                std::cout << "Executing brute-force search algorithm..." << std::endl;
+
+                for (int i = 0; i < numOfQueries; i++)
+                {
+                    auto True_start = std::chrono::high_resolution_clock::now();
+                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, inputPoints, SearchData->dimension);
+                    queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
+                    auto True_end = std::chrono::high_resolution_clock::now();
+                    tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
+                }
+                double tTrueAverage = 0.0;
+                for (int i = 0; i < numOfQueries; i++)
+                    tTrueAverage += tLSH[i];
             }
         }
         return EXIT_SUCCESS;

@@ -2,8 +2,8 @@
 #define _LSH_UTILS_H_
 
 #include <string>
-#include "../../lib/mathUtils.h"
-#include "../../lib/projectUtils.h"
+#include "mathUtils.h"
+#include "projectUtils.h"
 // #include "hashTable.h"
 
 #define DEF_K 4

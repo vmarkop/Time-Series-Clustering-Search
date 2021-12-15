@@ -6,7 +6,7 @@
 #include <string>
 #include <random>
 
-#include "projectUtils.h"
+#include "lshUtils.h"
 
 class FrechetDiscreteHashTables
 {
