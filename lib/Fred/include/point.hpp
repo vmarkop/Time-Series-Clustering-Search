@@ -17,13 +17,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <sstream>
 #include <type_traits>
 
-// #include <pybind11/pybind11.h>
-// #include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 
 #include "types.hpp"
 #include "interval.hpp"
 
-// namespace py = pybind11;
+namespace py = pybind11;
 
 class Point : public Coordinates {
 public:    
@@ -41,15 +41,18 @@ public:
         Coordinates::operator[](i) = val;
     }
     
+    #pragma omp declare simd
     inline const coordinate_t& operator[](const dimensions_t i) const { 
         return Coordinates::operator[](i); 
     }
     
+    #pragma omp declare simd
     inline coordinate_t& operator[](const dimensions_t i) { 
         return Coordinates::operator[](i); 
     }
     
     inline Point& operator+=(const Point &point) {
+        #pragma omp simd
         for (dimensions_t i = 0; i < dimensions(); ++i){
             operator[](i) += point[i];
         }
@@ -57,6 +60,7 @@ public:
     }
     
     inline Point& operator-=(const Point &point) {
+        #pragma omp simd
         for (dimensions_t i = 0; i < dimensions(); ++i){
             operator[](i) -= point[i];
         }
@@ -64,6 +68,7 @@ public:
     }
     
     inline Point& operator/=(const distance_t distance) {
+        #pragma omp simd
         for (dimensions_t i = 0; i < dimensions(); ++i){
             operator[](i) /= distance;
         }
@@ -72,6 +77,7 @@ public:
     
     inline Point operator+(const Point &point) const {
         Point result = *this;
+        #pragma omp simd
         for (dimensions_t i = 0; i < dimensions(); ++i){
             result[i] += point[i];
         }
@@ -80,6 +86,7 @@ public:
     
     inline Point operator-(const Point &point) const {
         Point result = *this;
+        #pragma omp simd
         for (dimensions_t i = 0; i < dimensions(); ++i){
             result[i] -= point[i];
         }
@@ -89,6 +96,7 @@ public:
     template<typename T>
     inline Point operator*(const T mult) const {
         Point result = *this;
+        #pragma omp simd
         for (dimensions_t i = 0; i < dimensions(); ++i){
             result[i] *= mult;
         }
@@ -97,6 +105,7 @@ public:
     
     inline distance_t operator*(const Point &p) const {
         distance_t result = 0;
+        #pragma omp simd reduction(+: result)
         for (dimensions_t i = 0; i < dimensions(); ++i) {
             result += operator[](i) * p[i];
         }
@@ -105,6 +114,7 @@ public:
     
     inline Point operator/(const distance_t dist) const {
         Point result = *this;
+        #pragma omp simd
         for (dimensions_t i = 0; i < dimensions(); ++i){
             result[i] /= dist;
         }
@@ -113,6 +123,7 @@ public:
     
     inline distance_t dist_sqr(const Point &point) const {
         distance_t result = 0, temp;
+        #pragma omp simd private(temp) reduction(+: result)
         for (dimensions_t i = 0; i < dimensions(); ++i){
             temp = operator[](i) - point[i];
             result += temp * temp;
@@ -126,6 +137,7 @@ public:
     
     inline distance_t length_sqr() const {
         distance_t result = 0;
+        #pragma omp simd reduction(+: result)
         for (dimensions_t i = 0; i < dimensions(); ++i){
             result += operator[](i) * operator[](i);
         }
@@ -172,13 +184,13 @@ public:
         return Interval(std::max(parameter_t(0), lambda1), std::min(parameter_t(1), lambda2));
     }
     
-    //  inline auto as_ndarray() const {
-    //     py::list l;
-    //     for (const coordinate_t &elem : *this) {
-    //         l.append(elem);
-    //     }
-    //     return py::array_t<coordinate_t>(l);
-    // }
+     inline auto as_ndarray() const {
+        py::list l;
+        for (const coordinate_t &elem : *this) {
+            l.append(elem);
+        }
+        return py::array_t<coordinate_t>(l);
+    }
     
     std::string str() const;
     
@@ -224,13 +236,13 @@ public:
         return dim;
     }
     
-    // inline auto as_ndarray() const {
-    //     py::list l;
-    //     for (const Point &elem : *this) {
-    //         l.append(elem.as_ndarray());
-    //     }
-    //     return py::array_t<coordinate_t>(l);
-    // }
+    inline auto as_ndarray() const {
+        py::list l;
+        for (const Point &elem : *this) {
+            l.append(elem.as_ndarray());
+        }
+        return py::array_t<coordinate_t>(l);
+    }
     
     std::string str() const;
     

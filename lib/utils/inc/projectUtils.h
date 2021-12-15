@@ -5,26 +5,30 @@
 #include <vector>
 #include <limits.h>
 
+#include "../../Fred/include/curve.hpp"
+#include "../../Fred/include/point.hpp"
+#include "../../Fred/include/frechet.hpp"
+
 #define BIGM (4294967291)
 #define W (5)
 #define DELTA (3)
 #define EPSILON (1)
 
-typedef struct PointStruct *PointPtr;
+typedef struct Point__Struct *PointPtr;
 typedef struct BucketStruct *BucketPtr;
 typedef struct NeighbourStruct *NeighbourPtr;
 typedef struct kNeighboursStruct *kNeighboursPtr;
 typedef std::vector<PointPtr> crv;
 typedef std::vector<PointPtr> *crvPtr;
 
-typedef struct PointStruct
+typedef struct Point__Struct
 {
     std::string id;
     std::vector<double> coords;
-} Point;
+} PointStruct;
 
-typedef Point Curve;
-typedef PointPtr CurvePtr;
+// typedef Point Curve;
+// typedef PointPtr CurvePtr;
 typedef struct BucketStruct
 {
     std::vector<PointPtr> points;
@@ -63,9 +67,9 @@ struct BY_ID_INT
 };
 std::vector<std::string> get_lines(std::string fileName);
 int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *pointVector);
-int get_curves(std::vector<std::string> linesVector, std::vector<CurvePtr> *curvesVector);
+int get_curves(std::vector<std::string> linesVector, std::vector<PointPtr> *curvesVector);
 // std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr> *pointVector);
-std::vector<CurvePtr> *convert_points(int dimension, const std::vector<PointPtr> *pointVector);
+std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr> *pointVector);
 void sort_neighbours(kNeighboursPtr k_nearest_neighbours, int k_neighbours);
 void sort_points(std::vector<PointPtr> *Data);
 void sort_points_str(std::vector<std::string> *Data);
@@ -79,7 +83,7 @@ PointPtr snap_point(const PointPtr point, int delta, int dimension);
 
 PointPtr concat_point(const PointPtr point, int dimension);
 void remove_dup_points(crvPtr curve, int dimension);
-void pad_curve(CurvePtr curve, int dim);
+void pad_curve(PointPtr curve, int dim);
 void pad_curve_new(crvPtr curve, int dim);
 
 /// Aiii ///
@@ -89,5 +93,8 @@ void minimaximize_curve_cont(crvPtr _curve, int dimension);
 
 void pointToCurve(PointPtr _p, crvPtr _c, int dimension);
 void curveToPoint(PointPtr _p, crvPtr _c, int dimension);
+
+double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension);
+Curve *convertToFredCurve(PointPtr p, int dim);
 
 #endif
