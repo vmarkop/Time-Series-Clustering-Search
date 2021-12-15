@@ -130,9 +130,14 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
     {
         PointPtr concated_point = concat_point(queryPoint, this->dim);
         crv _curve, snapped_curve;
+        pointToCurve(concated_point, &_curve, this->dim);
+        std::cout << "hello1" << std::endl;
         snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
+        std::cout << "hello10" << std::endl;
         remove_dup_points(&snapped_curve, this->dim);
+        std::cout << "hello11" << std::endl;
         pad_curve_new(&snapped_curve, this->dim);
+        std::cout << "hello12" << std::endl;
         curveToPoint(concated_point, &snapped_curve, this->dim);
         int queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
@@ -159,11 +164,11 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                     sort_neighbours(returnData, k_neighbours);
                 }
             }
-            // if (count > 20 * numOfHashTables)
-            // {
-            //     delete currNeighbour;
-            //     return returnData;
-            // }
+            if (count > 20 * numOfHashTables)
+            {
+                delete currNeighbour;
+                return returnData;
+            }
         }
     }
 
@@ -174,6 +179,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
         {
             PointPtr concated_point = concat_point(queryPoint, this->dim);
             crv _curve, snapped_curve;
+            pointToCurve(concated_point, &_curve, this->dim);
             snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
             remove_dup_points(&snapped_curve, this->dim);
             pad_curve_new(&snapped_curve, this->dim);
@@ -202,11 +208,11 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                         sort_neighbours(returnData, k_neighbours);
                     }
                 }
-                // if (count > 10 * numOfHashTables)
-                // {
-                //     delete currNeighbour;
-                //     return returnData;
-                // }
+                if (count > 10 * numOfHashTables)
+                {
+                    delete currNeighbour;
+                    return returnData;
+                }
             }
         }
     }

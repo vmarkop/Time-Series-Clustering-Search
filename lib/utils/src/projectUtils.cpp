@@ -259,10 +259,6 @@ std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr>
 
 crvPtr snap_curve(crvPtr snapped_curve, const crvPtr curve, double delta, std::vector<double> *taf, int dimension)
 {
-    // Generate random factor t for each dimension
-    //  std::vector<double> t;
-    //  for (int i = 0; i < dimension; i++)
-    //      t.push_back(uniformDistributionGenerator(0.0, delta));
     snapped_curve->resize(dimension);
     for (int i = 0; i < dimension; i++)
     {
