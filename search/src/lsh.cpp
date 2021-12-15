@@ -137,7 +137,7 @@ int main(int argc, char **argv)
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
                 for (int i = 0; i < numOfInputPoints; i++)
-                    HashTablesObject.HashTables::InsertCurve(inputPoints[i]);
+                    HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(inputPoints[i]);
 
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto LSH_start = std::chrono::high_resolution_clock::now();
-                    knnOutputData = HashTablesObject.HashTables::find_k_nearest_neighbours((*queryCurves)[i], 1);
+                    knnOutputData = HashTablesObject.FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours((*queryCurves)[i], 1);
                     queryOutputData[i] = knnOutputData->neighbours[0];
                     auto LSH_end = std::chrono::high_resolution_clock::now();
                     tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto True_start = std::chrono::high_resolution_clock::now();
-                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, *inputPoints, SearchData->dimension);
+                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, inputPoints, SearchData->dimension);
                     queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
                     auto True_end = std::chrono::high_resolution_clock::now();
                     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
                 for (int i = 0; i < numOfInputPoints; i++)
-                    HashTablesObjec.FrechetContinuousHashTables::InsertCurve(inputPoints[i]);
+                    HashTablesObject.FrechetContinuousHashTables::FrContInsertPoint(inputPoints[i]);
 
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto LSH_start = std::chrono::high_resolution_clock::now();
-                    knnOutputData = HashTablesObject.HashTables::find_k_nearest_neighbours((*queryCurves)[i], 1);
+                    knnOutputData = HashTablesObject.FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours((*queryCurves)[i], 1);
                     queryOutputData[i] = knnOutputData->neighbours[0];
                     auto LSH_end = std::chrono::high_resolution_clock::now();
                     tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();

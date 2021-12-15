@@ -25,7 +25,7 @@ public:
     void FrContInsertPoint(PointPtr point);
     int FrContHashFunc(PointPtr point, int hashtableId);
     // void PrintHashTables();
-    kNeighboursPtr FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours);
+    kNeighboursPtr FrCont_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours);
     // std::vector<PointPtr> range_search(PointPtr queryPoint, double range, std::vector<std::string> *foundPoints = NULL);
 };
 

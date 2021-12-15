@@ -6,8 +6,8 @@
 
 #include "lsh_frechet_cont.h"
 #include "lshUtils.h"
-#include "../../lib/mathUtils.h"
-#include "../../lib/projectUtils.h"
+#include "mathUtils.h"
+#include "projectUtils.h"
 
 FrechetContinuousHashTables::FrechetContinuousHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize) // Constructor
 
@@ -86,10 +86,10 @@ int FrechetContinuousHashTables::FrContHashFunc(PointPtr point, int hashtableId)
     return euclideanModulo(hri, BIGM);
 }
 
-kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours)
+kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours)
 {
 
-    PointPtr originalQueryPoint = concat_point(point, this->dim);
+    PointPtr originalQueryPoint = concat_point(queryPoint, this->dim);
     // PointPtr curPoint;
     // int curDist;
     int count = 0;
@@ -108,7 +108,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
 
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
-        PointPtr concated_point = concat_point(point, this->dim);
+        PointPtr concated_point = concat_point(queryPoint, this->dim);
         crvPtr _curve = new crv;
         pointToCurve(concated_point, _curve, this->dim);
         filter_curve(_curve, this->dim, EPSILON);
@@ -153,7 +153,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
 
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
         {
-            PointPtr concated_point = concat_point(point, this->dim);
+            PointPtr concated_point = concat_point(queryPoint, this->dim);
             crvPtr _curve = new crv;
             pointToCurve(concated_point, _curve, this->dim);
             filter_curve(_curve, this->dim, EPSILON);
@@ -161,7 +161,6 @@ kNeighboursPtr FrechetContinuousHashTables::FrDsc_find_k_nearest_neighbours(Poin
             minimaximize_curve_cont(snapped_curve, this->dim);
             pad_curve_new(snapped_curve, this->dim);
             curveToPoint(concated_point, snapped_curve, this->dim);
-            int queryID = this->FrContHashFunc(concated_point, i);
             int queryID = this->FrContHashFunc(concated_point, i);
             int g = euclideanModulo(queryID, this->TableSize);
 

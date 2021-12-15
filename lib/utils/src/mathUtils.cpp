@@ -39,13 +39,13 @@ double DFDistance(PointPtr p, PointPtr q, int dimension)
     q_points.resize(dimension / 2);
     for (int i = 0; i < dimension / 2; i++)
     {
-        p_points[i] = new Point;
+        p_points[i] = new PointStruct;
         p_points[i]->id = p->id;
         p_points[i]->coords.resize(2);
         p_points[i]->coords[0] = p->coords[i * 2];
         p_points[i]->coords[1] = p->coords[(i * 2) + 1];
 
-        q_points[i] = new Point;
+        q_points[i] = new PointStruct;
         q_points[i]->id = q->id;
         q_points[i]->coords.resize(2);
         q_points[i]->coords[0] = q->coords[i * 2];

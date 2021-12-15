@@ -85,7 +85,7 @@ int FrechetDiscreteHashTables::FrDscHashFunc(PointPtr point, int hashtableId)
 kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours)
 {
 
-    PointPtr originalQueryPoint = concat_point(point, this->dim);
+    PointPtr originalQueryPoint = concat_point(queryPoint, this->dim);
     // PointPtr curPoint;
     // int curDist;
     int count = 0;

@@ -6,8 +6,8 @@
 
 #include "hashTable.h"
 #include "lshUtils.h"
-#include "../../lib/mathUtils.h"
-#include "../../lib/projectUtils.h"
+#include "mathUtils.h"
+#include "projectUtils.h"
 
 HashTables::HashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize) // Constructor
 

@@ -21,7 +21,7 @@ private:
 public:
     HashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize); // Constructor
     void InsertPoint(PointPtr point);
-    void InsertCurve(CurvePtr curve);
+    void InsertCurve(PointPtr curve);
     int HashFunc(PointPtr point, int hashtableId);
     void PrintHashTables();
     kNeighboursPtr find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours);
