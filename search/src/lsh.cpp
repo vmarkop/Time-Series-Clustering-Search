@@ -32,9 +32,6 @@ int main(int argc, char **argv)
         std::cout << "Reading input file " << SearchData->inputFileName << "..." << std::endl;
         std::vector<std::string> inputLines = get_lines(SearchData->inputFileName);
 
-        std::cout << "Dimension: " << SearchData->dimension << std::endl
-                  << std::endl;
-
         if (SearchData->algorithm == ALG_LSH)
         {
 
@@ -119,6 +116,7 @@ int main(int argc, char **argv)
                 std::vector<PointPtr> inputPoints;
                 SearchData->dimension = get_points(inputLines, &inputPoints);
                 int numOfInputPoints = inputPoints.size();
+                std::cout << "Dimension: " << SearchData->dimension << std::endl;
 
                 // std::vector<PointPtr> snappedPoints;
                 // for (int i = 0; i < numOfInputPoints; i++)
@@ -133,19 +131,19 @@ int main(int argc, char **argv)
 
                 // Create HashTablesObject that stores curves, projected to vectors of size 2*dim
                 FrechetDiscreteHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
-
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
                 for (int i = 0; i < numOfInputPoints; i++)
+                {
+                    std::cout << inputPoints[i]->coords.size() << std::endl;
                     HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(inputPoints[i]);
-
+                }
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
                 std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
-
                 // Getting curves from query lines
-                std::vector<PointPtr> *queryCurves;
-                get_curves(queryLines, queryCurves);
+                std::vector<PointPtr> queryCurves;
+                std::cout << "get_curves got " << get_curves(queryLines, &queryCurves) << std::endl;
                 int numOfQueries = queryLines.size();
                 // LSH k nearest neighbor search
                 std::vector<std::vector<Neighbour> *> k_nearest_neighbours;
@@ -159,12 +157,12 @@ int main(int argc, char **argv)
                 std::vector<double> tLSH;
                 tLSH.resize(numOfQueries);
 
-                // std::cout << "Executing LSH search algorithm..." << std::endl;
+                std::cout << "Executing LSH search algorithm..." << std::endl;
 
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto LSH_start = std::chrono::high_resolution_clock::now();
-                    knnOutputData = HashTablesObject.FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours((*queryCurves)[i], 1);
+                    knnOutputData = HashTablesObject.FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(queryCurves[i], 1);
                     queryOutputData[i] = knnOutputData->neighbours[0];
                     auto LSH_end = std::chrono::high_resolution_clock::now();
                     tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
@@ -187,7 +185,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto True_start = std::chrono::high_resolution_clock::now();
-                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, inputPoints, SearchData->dimension);
+                    kTrueOutputData = find_k_true_neighbours(queryCurves[i], 1, inputPoints, SearchData->dimension);
                     queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
                     auto True_end = std::chrono::high_resolution_clock::now();
                     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
@@ -196,11 +194,11 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                     tTrueAverage += tLSH[i];
 
-                // // Writing results to outputFile
-                // if (writeToOutput(SearchData, queryPoints, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))
-                //     return EXIT_FAILURE;
+                // Writing results to outputFile
+                if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))
+                    return EXIT_FAILURE;
 
-                // // Deleting Data Structures
+                // Deleting Data Structures
                 // std::cout << "Freeing memory" << std::endl;
                 // deleteData(&inputPoints, &queryPoints, &k_nearest_neighbours, &queryOutputData, &queryTrueNeighbors, SearchData);
             }
@@ -224,8 +222,8 @@ int main(int argc, char **argv)
                 std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
 
                 // Getting curves from query lines
-                std::vector<PointPtr> *queryCurves;
-                get_curves(queryLines, queryCurves);
+                std::vector<PointPtr> queryCurves;
+                get_curves(queryLines, &queryCurves);
 
                 // LSH k nearest neighbor search
                 std::vector<std::vector<Neighbour> *> k_nearest_neighbours;
@@ -245,7 +243,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto LSH_start = std::chrono::high_resolution_clock::now();
-                    knnOutputData = HashTablesObject.FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours((*queryCurves)[i], 1);
+                    knnOutputData = HashTablesObject.FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(queryCurves[i], 1);
                     queryOutputData[i] = knnOutputData->neighbours[0];
                     auto LSH_end = std::chrono::high_resolution_clock::now();
                     tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
@@ -268,7 +266,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto True_start = std::chrono::high_resolution_clock::now();
-                    kTrueOutputData = find_k_true_neighbours((*queryCurves)[i], 1, inputPoints, SearchData->dimension);
+                    kTrueOutputData = find_k_true_neighbours(queryCurves[i], 1, inputPoints, SearchData->dimension);
                     queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
                     auto True_end = std::chrono::high_resolution_clock::now();
                     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();

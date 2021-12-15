@@ -6,6 +6,15 @@
 
 #include "lsh_frechet_dsc.h"
 
+void deleteCrv(crvPtr _curve)
+{
+    for (int i = 0; i < _curve->size(); i++)
+    {
+        delete (*_curve)[i];
+    }
+    // delete _curve;
+}
+
 FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize) // Constructor
 
 {
@@ -13,6 +22,7 @@ FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperpla
     this->numberOfHyperplanes = numberOfHyperplanes;
     this->numberOfPoints = numberOfPoints;
     this->TableSize = tableSize;
+    std::cout << "TABLA" << L << std::endl;
 
     this->dim = dimension;
     this->hash_tables.resize(L);
@@ -29,16 +39,23 @@ FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperpla
         this->_taf[i][1] = uniformDistributionGenerator(0.0, this->_delta);
 
         this->hash_tables[i].resize(this->TableSize);
+
+        std::cout << "TABLA" << L << std::endl;
+        this->hash_tables[i][0].ID.push_back(1);
+        this->hash_tables[i][0].ID.clear();
+
+        std::cout << "TABLA" << L << std::endl;
         this->t[i].resize(numberOfHyperplanes);
         this->ri[i].resize(numberOfHyperplanes);
         this->v[i].resize(numberOfHyperplanes);
 
         for (int j = 0; j < numberOfHyperplanes; j++)
         {
+
             this->t[i][j] = uniformDistributionGenerator(0.0, W * 1.0);
             this->ri[i][j] = rand() % 2000 - 1000;
-            this->v[i][j].resize(this->dim);
-            for (int l = 0; l < this->dim; l++)
+            this->v[i][j].resize(this->dim * 2);
+            for (int l = 0; l < this->dim * 2; l++)
                 this->v[i][j][l] = normalDistributionGenerator(0.0, 1.0);
         }
     }
@@ -49,23 +66,30 @@ void FrechetDiscreteHashTables::FrDscInsertPoint(PointPtr point)
     // (1,x),(2,y),(3,z)
     PointPtr original_point = concat_point(point, this->dim);
     PointPtr concated_point = concat_point(point, this->dim);
-    crvPtr _curve = new crv;
-    pointToCurve(concated_point, _curve, this->dim);
     for (int i = 0; i < this->numOfHashTables; i++)
     {
-        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim);
-        remove_dup_points(snapped_curve, this->dim);
-        pad_curve_new(snapped_curve, this->dim);
-        curveToPoint(concated_point, _curve, this->dim);
+        std::vector<PointPtr> _curve, snapped_curve;
+
+        pointToCurve(concated_point, &_curve, this->dim);
+        snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
+        remove_dup_points(&snapped_curve, this->dim);
+        pad_curve_new(&snapped_curve, this->dim);
+        curveToPoint(concated_point, &snapped_curve, this->dim);
+
         int id = FrDscHashFunc(concated_point, i);
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].ID.push_back(id);
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(original_point);
+        int j = euclideanModulo(id, this->TableSize);
+        deleteCrv(&snapped_curve);
+        deleteCrv(&_curve);
+        snapped_curve.clear();
+        _curve.clear();
+        this->hash_tables[i][j].ID.push_back(id);
+        this->hash_tables[i][j].points.push_back(original_point);
 
         //(r1h1 + r2h2 + r3h3 + r4h4 + r5h5) % m = ((r1h1 % m) + (r2h2 % m) + (r3h3 % m) + (r4h4 % m) + (r5h5 % m)) % m
         // = = = ( ((r1%m * h1%m)) % m + ... + ((r5%m * h5%m)) % m ) % m
         //
-        delete snapped_curve; // no longer needed
     }
+    delete concated_point;
 }
 
 int FrechetDiscreteHashTables::FrDscHashFunc(PointPtr point, int hashtableId)
@@ -101,45 +125,45 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
         returnData->neighbours[i]->point = NULL;
         returnData->neighbours[i]->dist = INT32_MAX; // initialize distance with a very big value
     }
-
+    std::cout << "numOfHash = " << this->numOfHashTables << std::endl;
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
         PointPtr concated_point = concat_point(queryPoint, this->dim);
-        crvPtr _curve = new crv;
-        pointToCurve(concated_point, _curve, this->dim);
-        crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim);
-        remove_dup_points(snapped_curve, this->dim);
-        pad_curve_new(snapped_curve, this->dim);
-        curveToPoint(concated_point, _curve, this->dim);
+        crv _curve, snapped_curve;
+        snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
+        remove_dup_points(&snapped_curve, this->dim);
+        pad_curve_new(&snapped_curve, this->dim);
+        curveToPoint(concated_point, &snapped_curve, this->dim);
         int queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
-
+        std::cout << "Cout0: " << this->hash_tables[i][g].points.size() << std::endl;
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
-
+            std::cout << "Cout1" << std::endl;
             if (this->hash_tables[i][g].ID[j] == queryID && notAlreadyExists(returnData, this->hash_tables[i][g].points[j]->id)) // if p,q actually belong in same bucket
             {
-
+                std::cout << "Cout2" << std::endl;
                 currNeighbour->point = this->hash_tables[i][g].points[j];
                 currNeighbour->dist = DFDistance(originalQueryPoint, currNeighbour->point, this->dim);
                 // if dist(q,p) < db then b <- p; db <- dist(q,p)
                 if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                 {
+                    std::cout << "Cout3" << std::endl;
                     if (returnData->size < k_neighbours)
                         returnData->size++;
                     returnData->neighbours[k_neighbours - 1]->point = currNeighbour->point;
                     returnData->neighbours[k_neighbours - 1]->dist = currNeighbour->dist;
-
+                    std::cout << "Cout4" << std::endl;
                     count++;
 
                     sort_neighbours(returnData, k_neighbours);
                 }
             }
-            if (count > 20 * numOfHashTables)
-            {
-                delete currNeighbour;
-                return returnData;
-            }
+            // if (count > 20 * numOfHashTables)
+            // {
+            //     delete currNeighbour;
+            //     return returnData;
+            // }
         }
     }
 
@@ -149,12 +173,11 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
         {
             PointPtr concated_point = concat_point(queryPoint, this->dim);
-            crvPtr _curve = new crv;
-            pointToCurve(concated_point, _curve, this->dim / 2);
-            crvPtr snapped_curve = snap_curve(_curve, this->_delta, &(this->_taf[i]), this->dim / 2);
-            remove_dup_points(snapped_curve, this->dim / 2);
-            pad_curve_new(snapped_curve, this->dim / 2);
-            curveToPoint(concated_point, _curve, this->dim / 2);
+            crv _curve, snapped_curve;
+            snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
+            remove_dup_points(&snapped_curve, this->dim);
+            pad_curve_new(&snapped_curve, this->dim);
+            curveToPoint(concated_point, &snapped_curve, this->dim);
             int queryID = FrDscHashFunc(concated_point, i);
             int g = euclideanModulo(queryID, this->TableSize);
 
@@ -179,15 +202,16 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                         sort_neighbours(returnData, k_neighbours);
                     }
                 }
-                if (count > 10 * numOfHashTables)
-                {
-                    delete currNeighbour;
-                    return returnData;
-                }
+                // if (count > 10 * numOfHashTables)
+                // {
+                //     delete currNeighbour;
+                //     return returnData;
+                // }
             }
         }
     }
     delete currNeighbour;
+    std::cout << "returnDataSize: " << returnData->size << std::endl;
     return returnData;
 }
 

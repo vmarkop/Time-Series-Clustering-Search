@@ -51,7 +51,7 @@ int get_points(std::vector<std::string> linesVector, std::vector<PointPtr> *poin
                 word = word + x;
             }
         }
-
+        currPoint->coords.push_back(atof(word.c_str()));
         pointsVector->push_back(currPoint);
     }
     return dimension;
@@ -184,7 +184,7 @@ std::string checkRerun()
 
 // Save input file lines as a discretized curve,
 // projected from 2D space to a single vector of size 2*d.
-int get_curves(std::vector<std::string> linesVector, std::vector<PointPtr> *curvesVector)
+int get_curves(std::vector<std::string> linesVector, std::vector<PointPtr> *pointsVector)
 {
     int dimension;
     for (int i = 0; i < linesVector.size(); i++)
@@ -192,33 +192,30 @@ int get_curves(std::vector<std::string> linesVector, std::vector<PointPtr> *curv
         // separate std::string by Tabs
         // pick every element from 2nd to std::endl
         // read point coordinates
-        PointPtr currCurve = new PointStruct;
+        PointPtr currPoint = new PointStruct;
         std::string word = "";
         dimension = 0;
-        // for (char x : linesVector[i])
-        for (int j = 0; j < linesVector[i].size(); j++)
+        for (char x : linesVector[i])
         {
-            if (linesVector[i][j] /*x*/ == '\t')
+            if (x == '\t')
             {
                 if (dimension)
-                {
-                    currCurve->coords.push_back(stod(word) /*atof(word.c_str())*/);
-                    currCurve->coords.push_back(j);
-                }
+                    currPoint->coords.push_back(atof(word.c_str()));
                 else
-                    currCurve->id = word;
+                    currPoint->id = word;
                 word = "";
 
-                dimension += 2;
+                dimension++;
             }
             else
             {
-                word = word + linesVector[i][j]; // x;
+                word = word + x;
             }
         }
-
-        curvesVector->push_back(currCurve);
+        currPoint->coords.push_back(atof(word.c_str()));
+        pointsVector->push_back(currPoint);
     }
+
     return dimension;
 }
 
@@ -260,17 +257,18 @@ std::vector<PointPtr> *convert_points(int dimension, const std::vector<PointPtr>
     return curves;
 }
 
-crvPtr snap_curve(const crvPtr curve, double delta, std::vector<double> *taf, int dimension)
+crvPtr snap_curve(crvPtr snapped_curve, const crvPtr curve, double delta, std::vector<double> *taf, int dimension)
 {
     // Generate random factor t for each dimension
     //  std::vector<double> t;
     //  for (int i = 0; i < dimension; i++)
     //      t.push_back(uniformDistributionGenerator(0.0, delta));
-
-    crvPtr snapped_curve = new crv;
     snapped_curve->resize(dimension);
     for (int i = 0; i < dimension; i++)
     {
+        (*snapped_curve)[i] = new PointStruct;
+        (*snapped_curve)[i]->id = (*curve)[i]->id;
+        (*snapped_curve)[i]->coords.resize(2);
         (*snapped_curve)[i]->coords[0] = (floor(abs((*curve)[i]->coords[0] - (*taf)[0]) / delta + 0.5) * delta + (*taf)[0]);
         (*snapped_curve)[i]->coords[1] = (floor(abs((*curve)[i]->coords[1] - (*taf)[1]) / delta + 0.5) * delta + (*taf)[1]);
     }
@@ -298,11 +296,8 @@ PointPtr concat_point(const PointPtr point, int dimension)
     concatd_point->coords.resize(2 * dimension);
     for (int i = 0; i < dimension; i++)
     {
-        concatd_point->coords[i * 2] = point->coords[i * 2];
-    }
-    for (int i = 0; i < dimension; i++)
-    {
-        concatd_point->coords[(i * 2) + 1] = i;
+        concatd_point->coords[i * 2] = i;
+        concatd_point->coords[(i * 2) + 1] = point->coords[i];
     }
 
     return concatd_point;
@@ -326,10 +321,17 @@ void remove_dup_points(crvPtr curve, int dimension)
             prev[1] = (*curve)[i]->coords[1];
         }
     }
-    for (int index : removedIndex)
+    std::cout << "qwerty" << std::endl;
+    int i = 0;
+    // for (int index : removedIndex)
+    // {
+    //     // delete (*curve)[index];
+    //     curve->erase(curve->begin() + index);
+    // }
+
+    for (int i = 0; i < removedIndex.size(); i++)
     {
-        delete (*curve)[index];
-        curve->erase(curve->begin() + index);
+        curve->erase(curve->begin() + removedIndex[i] - i);
     }
 }
 
@@ -409,7 +411,7 @@ void pointToCurve(PointPtr _p, crvPtr _c, int dimension)
         return;
     }
 
-    (*_c).resize(dimension);
+    _c->resize(dimension);
     for (int i = 0; i < dimension; i++)
     {
         (*_c)[i] = new PointStruct;

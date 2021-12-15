@@ -76,7 +76,7 @@ void sort_points_str(std::vector<std::string> *Data);
 int notAlreadyExists(kNeighboursPtr k_nearest_neighbours, std::string pointID);
 kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dimension);
 std::string checkRerun();
-crvPtr snap_curve(const crvPtr curve, double delta, std::vector<double> *taf, int dimension);
+crvPtr snap_curve(crvPtr snapped_curve, const crvPtr curve, double delta, std::vector<double> *taf, int dimension);
 
 /// Aii ///
 PointPtr snap_point(const PointPtr point, int delta, int dimension);

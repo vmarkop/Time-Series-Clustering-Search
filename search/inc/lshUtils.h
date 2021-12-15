@@ -39,6 +39,15 @@ int writeToOutput(inputData *LSHData,
                   double tLSH,
                   double tTrue,
                   std::string algorithm);
+
+int writeToOutputFrDsc(inputData *SearchData,
+                       std::vector<PointPtr> queryPoints,
+                       std::vector<NeighbourPtr> queryOutputData,
+                       std::vector<NeighbourPtr> queryTrueNeighbors,
+                       double tLSH,
+                       double tTrue,
+                       std::string algorithm);
+
 void deleteData(std::vector<PointPtr> *inputPoints,
                 std::vector<PointPtr> *queryPoints,
                 std::vector<std::vector<Neighbour> *> *k_nearest_neighbours,

@@ -4,6 +4,9 @@
 
 #include "lshUtils.h"
 
+#define DEF_M 10
+#define DEF_PROBES 2
+
 inputData *getInputData(int *argc, char **argv)
 {
 
@@ -79,6 +82,23 @@ inputData *getInputData(int *argc, char **argv)
 
     found.push_back(" ");
     std::string input = {};
+
+    if (std::find(found.begin(), found.end(), "k") == found.end()) // if not found -k
+    {
+        SearchData->numberOfHyperplanes = DEF_K;
+    }
+    if (std::find(found.begin(), found.end(), "l") == found.end()) // if not found -l
+    {
+        SearchData->intL = DEF_L;
+    }
+    if (std::find(found.begin(), found.end(), "m") == found.end()) // if not found -m
+    {
+        SearchData->intM = DEF_M;
+    }
+    if (std::find(found.begin(), found.end(), "probes") == found.end()) // if not found -probes
+    {
+        SearchData->intM = DEF_PROBES;
+    }
 
     if (std::find(found.begin(), found.end(), "inputFile") == found.end()) // if not found inputFile
     {
@@ -192,6 +212,51 @@ int writeToOutput(inputData *SearchData,
 
         outputFile << "distanceTrue: "
                    << queryTrueNeighbors[i]->neighbours[0]->dist << std::endl;
+
+        outputFile << std::endl;
+    }
+
+    outputFile << "tApproximateAverage: " << (double)(tLSH / queryPoints.size() / 1000) << 's' << std::endl
+               << "tTrueAverage: " << (double)(tTrue / queryPoints.size() / 1000) << 's' << std::endl;
+
+    outputFile.close();
+    return EXIT_SUCCESS;
+}
+
+int writeToOutputFrDsc(inputData *SearchData,
+                       std::vector<PointPtr> queryPoints,
+                       std::vector<NeighbourPtr> queryOutputData,
+                       std::vector<NeighbourPtr> queryTrueNeighbors,
+                       double tLSH,
+                       double tTrue,
+                       std::string algorithm)
+{
+    std::cout << "Creating output file..." << std::endl;
+    std::ofstream outputFile(SearchData->outputFileName);
+    if (!outputFile.is_open())
+    {
+        std::cerr << "Could not open the file: '"
+                  << SearchData->outputFileName << "'"
+                  << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < queryPoints.size(); i++)
+    {
+        outputFile << "Query: "
+                   << queryPoints[i]->id << std::endl
+                   << "Algorithm: " << algorithm << std::endl;
+
+        outputFile << "Approximate Nearest neighbor: "
+                   << queryOutputData[i]->point->id << std::endl;
+        outputFile << "True Nearest neighbor: "
+                   << queryTrueNeighbors[i]->point->id << std::endl;
+
+        outputFile << "distanceApproximate: "
+                   << queryOutputData[i]->dist << std::endl;
+
+        outputFile << "distanceTrue: "
+                   << queryTrueNeighbors[i]->dist << std::endl;
 
         outputFile << std::endl;
     }
