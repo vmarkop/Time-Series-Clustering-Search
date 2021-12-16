@@ -238,7 +238,7 @@ int main(int argc, char **argv)
                 std::vector<double> tLSH;
                 tLSH.resize(numOfQueries);
 
-                // std::cout << "Executing LSH search algorithm..." << std::endl;
+                std::cout << "Executing LSH search algorithm..." << std::endl;
 
                 for (int i = 0; i < numOfQueries; i++)
                 {
