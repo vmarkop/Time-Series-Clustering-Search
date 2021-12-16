@@ -210,7 +210,7 @@ int main(int argc, char **argv)
                 int numOfInputPoints = inputPoints.size();
 
                 // Create HashTablesObject that stores curves, projected to vectors of size 2*dim
-                FrechetContinuousHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
+                FrechetContinuousHashTables HashTablesObject(1, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
 
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
