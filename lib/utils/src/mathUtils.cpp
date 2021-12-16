@@ -32,7 +32,24 @@ double min(double x1, double x2, double x3)
     return retMin;
 }
 
-double DFDistance(PointPtr p, PointPtr q, int dimension)
+int minIndx(double x1, double x2, double x3)
+{
+    double retMin = x1;
+    int indxMin = 0;
+    if (x2 < retMin)
+    {
+        retMin = x2;
+        indxMin = 1;
+    }
+    if (x3 < retMin)
+    {
+        retMin = x3;
+        indxMin = 2;
+    }
+    return indxMin;
+}
+
+double DFDistance(std::vector<std::vector<double>> *_c, PointPtr p, PointPtr q, int dimension)
 {
     std::vector<PointPtr> p_points, q_points;
     p_points.resize(dimension / 2);
@@ -52,14 +69,13 @@ double DFDistance(PointPtr p, PointPtr q, int dimension)
         q_points[i]->coords[1] = q->coords[(i * 2) + 1];
     }
 
-    std::vector<std::vector<double>> _c;
     // Initializing _c dimention
-    _c.resize(dimension / 2);
+    _c->resize(dimension / 2);
     for (int i = 0; i < dimension / 2; i++)
     {
-        _c[i].resize(dimension / 2);
+        (*_c)[i].resize(dimension / 2);
     }
-    _c[0][0] = euclideanDistance(p_points[0], q_points[0], 2);
+    (*_c)[0][0] = euclideanDistance(p_points[0], q_points[0], 2);
     for (int i = 0; i < dimension / 2; i++)
     {
         for (int j = i; j < dimension / 2; j++)
@@ -67,10 +83,10 @@ double DFDistance(PointPtr p, PointPtr q, int dimension)
             if (i == 0 && j > 0)
             {
                 // Creating row
-                if (_c[0][j - 1] > euclideanDistance(p_points[0], q_points[j], 2))
-                    _c[0][j] = _c[0][j - 1];
+                if ((*_c)[0][j - 1] > euclideanDistance(p_points[0], q_points[j], 2))
+                    (*_c)[0][j] = (*_c)[0][j - 1];
                 else
-                    _c[0][j] = euclideanDistance(p_points[0], q_points[j], 2);
+                    (*_c)[0][j] = euclideanDistance(p_points[0], q_points[j], 2);
 
                 // Creating column
                 if (i != j)
@@ -79,10 +95,10 @@ double DFDistance(PointPtr p, PointPtr q, int dimension)
                     i = j;
                     j = temp;
 
-                    if (_c[i - 1][0] > euclideanDistance(p_points[i], q_points[0], 2))
-                        _c[i][0] = _c[i - 1][0];
+                    if ((*_c)[i - 1][0] > euclideanDistance(p_points[i], q_points[0], 2))
+                        (*_c)[i][0] = (*_c)[i - 1][0];
                     else
-                        _c[i][0] = euclideanDistance(p_points[i], q_points[0], 2);
+                        (*_c)[i][0] = euclideanDistance(p_points[i], q_points[0], 2);
                     temp = i;
                     i = j;
                     j = temp;
@@ -91,11 +107,11 @@ double DFDistance(PointPtr p, PointPtr q, int dimension)
             else if (i > 0 && j > 0)
             {
                 // Creating row
-                double min_c = min(_c[i][j - 1], _c[i - 1][j], _c[i - 1][j - 1]);
+                double min_c = min((*_c)[i][j - 1], (*_c)[i - 1][j], (*_c)[i - 1][j - 1]);
                 if (min_c > euclideanDistance(p_points[i], q_points[j], 2))
-                    _c[i][j] = min_c;
+                    (*_c)[i][j] = min_c;
                 else
-                    _c[i][j] = euclideanDistance(p_points[i], q_points[j], 2);
+                    (*_c)[i][j] = euclideanDistance(p_points[i], q_points[j], 2);
 
                 // Creating column
                 if (i != j)
@@ -103,11 +119,11 @@ double DFDistance(PointPtr p, PointPtr q, int dimension)
                     int temp = i;
                     i = j;
                     j = temp;
-                    min_c = min(_c[i][j - 1], _c[i - 1][j], _c[i - 1][j - 1]);
+                    min_c = min((*_c)[i][j - 1], (*_c)[i - 1][j], (*_c)[i - 1][j - 1]);
                     if (min_c > euclideanDistance(p_points[i], q_points[j], 2))
-                        _c[i][j] = min_c;
+                        (*_c)[i][j] = min_c;
                     else
-                        _c[i][j] = euclideanDistance(p_points[i], q_points[j], 2);
+                        (*_c)[i][j] = euclideanDistance(p_points[i], q_points[j], 2);
                     temp = i;
                     i = j;
                     j = temp;
@@ -115,7 +131,7 @@ double DFDistance(PointPtr p, PointPtr q, int dimension)
             }
         }
     }
-    return _c[(dimension / 2) - 1][(dimension / 2) - 1];
+    return (*_c)[(dimension / 2) - 1][(dimension / 2) - 1];
 }
 
 double uniformDistributionGenerator(const double alpha, const double beta)
@@ -124,7 +140,7 @@ double uniformDistributionGenerator(const double alpha, const double beta)
     std::random_device randomDevice;
     std::mt19937 generator(randomDevice());
     std::uniform_real_distribution<> distribution(alpha, beta);
-    //cout << "UniformDistGen " << distribution(generator) << endl;
+    // cout << "UniformDistGen " << distribution(generator) << endl;
 
     return distribution(generator);
 }

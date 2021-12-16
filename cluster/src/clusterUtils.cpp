@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "clusterUtils.h"
+#include "lsh_frechet_dsc.h"
 #include "methods.h"
 
 double silhouette_calculator(PointPtr point, std::vector<Cluster> *clusters, int dimension)
@@ -129,10 +130,37 @@ double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *
 
 PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
 {
+    std::vector<std::vector<double>> _c;
+    double dis = DFDistance(&_c, curve1, curve2, curve1.size());
+    std::vector<std::vector<int>> traversal;
+    std::vector<int> element;
+    element.resize(2);
+    int index_p = curve2->coords.size() / 2 - 1, index_q = curve2->coords.size() / 2 - 1;
+    element[0] = index_p, element[1] = index_q;
+    traversal.push_back(element);
+    while (index_q != 0 && index_p != 0)
+    {
+        int minIdx = minIdx(_c[index_p - 1, index_q], _c[index_p, index_q - 1], _c[index_p - 1, index_q - 1]); // Fix
+        if (minIdx == 0)
+        {
+            element[0] = --index_p, element[1] = index_q;
+            traversal.push_back(element);
+        }
+        else if (minIdx == 0)
+        {
+            element[0] = index_p, element[1] = --index_q;
+            traversal.push_back(element);
+        }
+        else
+        {
+            element[0] = --index_p, element[1] = --index_q;
+            traversal.push_back(element);
+        }
+    }
+    std::reverse(traversal.begin(), traversal.end());
 }
 
-PointPtr
-findMean(treeNodePtr treeNode)
+PointPtr findMean(treeNodePtr treeNode)
 {
     if (treeNode->curve != NULL)
         return treeNode->curve;
