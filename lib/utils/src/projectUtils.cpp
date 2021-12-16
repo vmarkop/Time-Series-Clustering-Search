@@ -454,3 +454,16 @@ void deleteCrv(crvPtr _curve)
         delete (*_curve)[i];
     }
 }
+
+treeNodePtr buildTree(double height)
+{
+    if (height == 0)
+    {
+        return NULL;
+    }
+    treeNodePtr retTree = new treeNode;
+    retTree->curve = NULL;
+    retTree->rightChld = buildTree(height - 1);
+    retTree->leftChld = buildTree(height - 1);
+    return retTree;
+}
