@@ -17,7 +17,7 @@ FrechetContinuousHashTables::FrechetContinuousHashTables(int L, int numberOfHype
     this->numberOfPoints = numberOfPoints;
     this->TableSize = tableSize;
 
-    this->dim = dimension * 2;
+    this->dim = dimension;
     this->hash_tables.resize(L);
     this->t.resize(L);
     this->ri.resize(L);
@@ -52,15 +52,29 @@ void FrechetContinuousHashTables::FrContInsertPoint(PointPtr point)
     // (1,x),(2,y),(3,z)
     PointPtr concated_point = concat_point(point, this->dim);
     PointPtr original_point = concat_point(point, this->dim);
-    crvPtr _curve = new crv;
-    pointToCurve(concated_point, _curve, this->dim);
+
     for (int i = 0; i < this->numOfHashTables; i++)
     {
-        filter_curve(_curve, this->dim, EPSILON);
-        crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim);
-        minimaximize_curve_cont(snapped_curve, this->dim);
-        pad_curve_new(snapped_curve, this->dim);
-        curveToPoint(concated_point, snapped_curve, this->dim);
+        std::vector<PointPtr> _curve, snapped_curve;
+
+        pointToCurve(concated_point, &_curve, this->dim);
+        std::cout << "cout00" << std::endl;
+        filter_curve(&_curve, this->dim, EPSILON);
+        std::cout << "cout01" << std::endl;
+        snap_curve_cont(&snapped_curve, &_curve, this->_delta, this->dim);
+        std::cout << "cout02" << std::endl;
+        minimaximize_curve_cont(&snapped_curve, this->dim);
+        std::cout << "cout03" << std::endl;
+        pad_curve_new(&snapped_curve, this->dim);
+        std::cout << "cout04" << std::endl;
+        curveToPoint(concated_point, &snapped_curve, this->dim);
+        std::cout << "cout05" << std::endl;
+
+        deleteCrv(&snapped_curve);
+        deleteCrv(&_curve);
+        snapped_curve.clear();
+        _curve.clear();
+
         int id = FrContHashFunc(concated_point, i);
         this->hash_tables[i][euclideanModulo(id, this->TableSize)].ID.push_back(id);
         this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(original_point);
@@ -68,8 +82,8 @@ void FrechetContinuousHashTables::FrContInsertPoint(PointPtr point)
         //(r1h1 + r2h2 + r3h3 + r4h4 + r5h5) % m = ((r1h1 % m) + (r2h2 % m) + (r3h3 % m) + (r4h4 % m) + (r5h5 % m)) % m
         // = = = ( ((r1%m * h1%m)) % m + ... + ((r5%m * h5%m)) % m ) % m
         //
-        delete snapped_curve; // no longer needed
     }
+    delete concated_point;
 }
 
 int FrechetContinuousHashTables::FrContHashFunc(PointPtr point, int hashtableId)
@@ -109,16 +123,16 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
         PointPtr concated_point = concat_point(queryPoint, this->dim);
-        crvPtr _curve = new crv;
-        pointToCurve(concated_point, _curve, this->dim);
-        filter_curve(_curve, this->dim, EPSILON);
-        crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim);
-        minimaximize_curve_cont(snapped_curve, this->dim);
-        pad_curve_new(snapped_curve, this->dim);
-        curveToPoint(concated_point, snapped_curve, this->dim);
+        crv _curve, snapped_curve;
+        pointToCurve(concated_point, &_curve, this->dim);
+        filter_curve(&_curve, this->dim, EPSILON);
+        snap_curve_cont(&snapped_curve, &_curve, this->_delta, this->dim);
+        minimaximize_curve_cont(&snapped_curve, this->dim);
+        pad_curve_new(&snapped_curve, this->dim);
+        curveToPoint(concated_point, &snapped_curve, this->dim);
+
         int queryID = this->FrContHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
-
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
 
@@ -126,7 +140,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
             {
 
                 currNeighbour->point = this->hash_tables[i][g].points[j];
-                currNeighbour->dist = ContinuousFrechetDistance(originalQueryPoint, currNeighbour->point, this->dim);
+                currNeighbour->dist = ContinuousFrechetDistance(originalQueryPoint, currNeighbour->point, this->dim * 2);
                 // if dist(q,p) < db then b <- p; db <- dist(q,p)
                 if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                 {
@@ -154,13 +168,14 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
         {
             PointPtr concated_point = concat_point(queryPoint, this->dim);
-            crvPtr _curve = new crv;
-            pointToCurve(concated_point, _curve, this->dim);
-            filter_curve(_curve, this->dim, EPSILON);
-            crvPtr snapped_curve = snap_curve_cont(_curve, this->_delta, this->dim);
-            minimaximize_curve_cont(snapped_curve, this->dim);
-            pad_curve_new(snapped_curve, this->dim);
-            curveToPoint(concated_point, snapped_curve, this->dim);
+            crv _curve, snapped_curve;
+            pointToCurve(concated_point, &_curve, this->dim);
+            filter_curve(&_curve, this->dim, EPSILON);
+            snap_curve_cont(&snapped_curve, &_curve, this->_delta, this->dim);
+            minimaximize_curve_cont(&snapped_curve, this->dim);
+            pad_curve_new(&snapped_curve, this->dim);
+            curveToPoint(concated_point, &snapped_curve, this->dim);
+
             int queryID = this->FrContHashFunc(concated_point, i);
             int g = euclideanModulo(queryID, this->TableSize);
 

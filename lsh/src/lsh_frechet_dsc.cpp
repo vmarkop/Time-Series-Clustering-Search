@@ -6,15 +6,6 @@
 
 #include "lsh_frechet_dsc.h"
 
-void deleteCrv(crvPtr _curve)
-{
-    for (int i = 0; i < _curve->size(); i++)
-    {
-        delete (*_curve)[i];
-    }
-    // delete _curve;
-}
-
 FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize) // Constructor
 
 {
@@ -131,34 +122,25 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
         PointPtr concated_point = concat_point(queryPoint, this->dim);
         crv _curve, snapped_curve;
         pointToCurve(concated_point, &_curve, this->dim);
-        std::cout << "hello1" << std::endl;
         snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
-        std::cout << "hello10" << std::endl;
         remove_dup_points(&snapped_curve, this->dim);
-        std::cout << "hello11" << std::endl;
         pad_curve_new(&snapped_curve, this->dim);
-        std::cout << "hello12" << std::endl;
         curveToPoint(concated_point, &snapped_curve, this->dim);
         int queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
-        std::cout << "Cout0: " << this->hash_tables[i][g].points.size() << std::endl;
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
-            std::cout << "Cout1" << std::endl;
             if (this->hash_tables[i][g].ID[j] == queryID && notAlreadyExists(returnData, this->hash_tables[i][g].points[j]->id)) // if p,q actually belong in same bucket
             {
-                std::cout << "Cout2" << std::endl;
                 currNeighbour->point = this->hash_tables[i][g].points[j];
                 currNeighbour->dist = DFDistance(originalQueryPoint, currNeighbour->point, this->dim);
                 // if dist(q,p) < db then b <- p; db <- dist(q,p)
                 if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                 {
-                    std::cout << "Cout3" << std::endl;
                     if (returnData->size < k_neighbours)
                         returnData->size++;
                     returnData->neighbours[k_neighbours - 1]->point = currNeighbour->point;
                     returnData->neighbours[k_neighbours - 1]->dist = currNeighbour->dist;
-                    std::cout << "Cout4" << std::endl;
                     count++;
 
                     sort_neighbours(returnData, k_neighbours);

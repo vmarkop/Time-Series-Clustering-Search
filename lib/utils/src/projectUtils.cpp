@@ -272,12 +272,14 @@ crvPtr snap_curve(crvPtr snapped_curve, const crvPtr curve, double delta, std::v
     return snapped_curve;
 }
 
-crvPtr snap_curve_cont(crvPtr curve, double delta, int dimension)
+crvPtr snap_curve_cont(crvPtr snapped_curve, crvPtr curve, double delta, int dimension)
 {
-    crvPtr snapped_curve = new crv;
     snapped_curve->resize(dimension);
     for (int i = 0; i < dimension; i++)
     {
+        (*snapped_curve)[i] = new PointStruct;
+        (*snapped_curve)[i]->id = (*curve)[i]->id;
+        (*snapped_curve)[i]->coords.resize(2);
         (*snapped_curve)[i]->coords[0] = floor((*curve)[i]->coords[0] / delta) * delta;
         (*snapped_curve)[i]->coords[1] = floor((*curve)[i]->coords[1] / delta) * delta;
     }
@@ -373,16 +375,6 @@ void filter_curve(crvPtr curve, int dimension, double epsilon)
 
 void minimaximize_curve_cont(crvPtr _curve, int dimension)
 {
-    // We keep only dimension [1] (x,y,z,...)
-    // if y>x and y<z, mark for removal
-    // goto next
-
-    // std::vector<double> y_points;
-    // for (int i = 0; i < dimension; i++)
-    // {
-    //     y_points.push_back(point->coords[2 * i + 1]);
-    // }
-
     std::vector<int> removedIndex;
     for (int i = 1; i < dimension - 1; i++)
     {
@@ -392,10 +384,9 @@ void minimaximize_curve_cont(crvPtr _curve, int dimension)
         }
     }
 
-    for (int index : removedIndex)
+    for (int i = 0; i < removedIndex.size(); i++)
     {
-        delete (*_curve)[index];
-        _curve->erase(_curve->begin() + index);
+        _curve->erase(_curve->begin() + removedIndex[i] - i);
     }
 }
 
@@ -453,4 +444,13 @@ Curve *convertToFredCurve(PointPtr p, int dim)
 
     Curve *curve = new Curve(fp);
     return curve;
+}
+
+void deleteCrv(crvPtr _curve)
+{
+    for (int i = 0; i < _curve->size(); i++)
+    {
+        delete (*_curve)[i];
+    }
+    // delete _curve;
 }

@@ -88,7 +88,7 @@ void pad_curve_new(crvPtr curve, int dim);
 
 /// Aiii ///
 void filter_curve(crvPtr curve, int dimension, double epsilon);
-crvPtr snap_curve_cont(crvPtr curve, double delta, int dimension);
+crvPtr snap_curve_cont(crvPtr snapped_curve, crvPtr curve, double delta, int dimension);
 void minimaximize_curve_cont(crvPtr _curve, int dimension);
 
 void pointToCurve(PointPtr _p, crvPtr _c, int dimension);
@@ -96,5 +96,6 @@ void curveToPoint(PointPtr _p, crvPtr _c, int dimension);
 
 double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension);
 Curve *convertToFredCurve(PointPtr p, int dim);
+void deleteCrv(crvPtr _curve);
 
 #endif
