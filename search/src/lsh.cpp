@@ -274,6 +274,14 @@ int main(int argc, char **argv)
                 double tTrueAverage = 0.0;
                 for (int i = 0; i < numOfQueries; i++)
                     tTrueAverage += tLSH[i];
+
+                // Writing results to outputFile
+                if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))
+                    return EXIT_FAILURE;
+
+                // Deleting Data Structures
+                // std::cout << "Freeing memory" << std::endl;
+                // deleteData(&inputPoints, &queryPoints, &k_nearest_neighbours, &queryOutputData, &queryTrueNeighbors, SearchData);
             }
         }
         return EXIT_SUCCESS;

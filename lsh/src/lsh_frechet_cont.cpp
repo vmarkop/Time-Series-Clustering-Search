@@ -186,7 +186,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
                 {
 
                     currNeighbour->point = this->hash_tables[i][g].points[j];
-                    currNeighbour->dist = euclideanDistance(originalQueryPoint, currNeighbour->point, this->dim);
+                    currNeighbour->dist = ContinuousFrechetDistance(originalQueryPoint, currNeighbour->point, this->dim);
                     // if dist(q,p) < db then b <- p; db <- dist(q,p)
                     if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                     {
