@@ -435,13 +435,11 @@ double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension)
 
 Curve *convertToFredCurve(PointPtr p, int dim)
 {
-    Points fp(2);
+    Points fp(1);
     for (int i = 0; i < dim; i++)
     {
-        Point t(2);
-        t.resize(2);
-        t[0] = p->coords[i * 2];
-        t[1] = p->coords[i * 2 + 1];
+        Point t(1);
+        t.set(0, p->coords[i * 2 + 1]);
         fp.add(t);
     }
 
