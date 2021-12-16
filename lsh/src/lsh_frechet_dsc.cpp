@@ -133,8 +133,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
             if (this->hash_tables[i][g].ID[j] == queryID && notAlreadyExists(returnData, this->hash_tables[i][g].points[j]->id)) // if p,q actually belong in same bucket
             {
                 currNeighbour->point = this->hash_tables[i][g].points[j];
-                std::vector<std::vector<double>> _c;
-                currNeighbour->dist = DFDistance(&_c, originalQueryPoint, currNeighbour->point, this->dim * 2);
+                currNeighbour->dist = DFDistance(originalQueryPoint, currNeighbour->point, this->dim * 2);
                 // if dist(q,p) < db then b <- p; db <- dist(q,p)
                 if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                 {

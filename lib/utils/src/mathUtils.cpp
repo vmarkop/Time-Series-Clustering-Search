@@ -49,8 +49,10 @@ int minIndx(double x1, double x2, double x3)
     return indxMin;
 }
 
-double DFDistance(std::vector<std::vector<double>> *_c, PointPtr p, PointPtr q, int dimension)
+double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector<double>> *_c)
 {
+    if (_c == NULL)
+        _c = new std::vector<std::vector<double>>;
     std::vector<PointPtr> p_points, q_points;
     p_points.resize(dimension / 2);
     q_points.resize(dimension / 2);

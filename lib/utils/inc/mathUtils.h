@@ -12,7 +12,7 @@ double uniformDistributionGenerator(double alpha = 0.0, double beta = 1.0);
 double euclideanDistance(PointPtr x, PointPtr y, int dimension);
 double min(double x1, double x2, double x3);
 int minIndx(double x1, double x2, double x3);
-double DFDistance(std::vector<std::vector<double>> *_c, PointPtr p, PointPtr q, int dimension);
+double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector<double>> *_c = NULL);
 int avoidOverFlowModulo(int a, int b, int m, char op);
 int euclideanModulo(int x, int y);
 int powerWithBase2(int exp);
