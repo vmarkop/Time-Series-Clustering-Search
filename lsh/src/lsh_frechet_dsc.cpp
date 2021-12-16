@@ -203,51 +203,51 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
     return returnData;
 }
 
-// std::vector<PointPtr> HashTables::range_search(PointPtr queryPoint, double range, std::vector<std::string> *foundPoints)
-// {
+std::vector<PointPtr> FrechetDiscreteHashTables::range_search(PointPtr queryPoint, double range, std::vector<std::string> *foundPoints)
+{
 
-//     bool noFoundPoints = false; // flag to know if data needs to be freed or not
-//     if (foundPoints == NULL)
-//     {
-//         noFoundPoints = true;
-//         foundPoints = new std::vector<std::string>;
-//     }
-//     else
-//         std::sort(foundPoints->begin(), foundPoints->end());
+    bool noFoundPoints = false; // flag to know if data needs to be freed or not
+    if (foundPoints == NULL)
+    {
+        noFoundPoints = true;
+        foundPoints = new std::vector<std::string>;
+    }
+    else
+        std::sort(foundPoints->begin(), foundPoints->end());
 
-//     NeighbourPtr currNeighbour = new Neighbour;
+    NeighbourPtr currNeighbour = new Neighbour;
 
-//     std::vector<PointPtr> returnData;
+    std::vector<PointPtr> returnData;
 
-//     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
-//     {
-//         int queryID = this->HashFunc(queryPoint, i);
-//         int g = euclideanModulo(queryID, this->TableSize);
-//         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
-//         {
-//             bool found = binary_search(foundPoints->begin(), foundPoints->end(), this->hash_tables[i][g].points[j]->id);
+    for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
+    {
+        int queryID = this->FrDscHashFunc(queryPoint, i);
+        int g = euclideanModulo(queryID, this->TableSize);
+        for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
+        {
+            bool found = binary_search(foundPoints->begin(), foundPoints->end(), this->hash_tables[i][g].points[j]->id);
 
-//             if (!found)
-//             {
+            if (!found)
+            {
 
-//                 currNeighbour->point = this->hash_tables[i][g].points[j];
-//                 currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, this->dim);
+                currNeighbour->point = this->hash_tables[i][g].points[j];
+                currNeighbour->dist = DFDistance(queryPoint, currNeighbour->point, this->dim);
 
-//                 if (currNeighbour->dist < range)
-//                 {
-//                     returnData.push_back(this->hash_tables[i][g].points[j]);
-//                     foundPoints->push_back(this->hash_tables[i][g].points[j]->id);
-//                     sort_points(&returnData);
-//                     sort_points_str(foundPoints);
-//                 }
-//             }
-//         }
-//     }
-//     delete currNeighbour;
-//     if (noFoundPoints)
-//         delete foundPoints;
-//     return returnData;
-// }
+                if (currNeighbour->dist < range)
+                {
+                    returnData.push_back(this->hash_tables[i][g].points[j]);
+                    foundPoints->push_back(this->hash_tables[i][g].points[j]->id);
+                    sort_points(&returnData);
+                    sort_points_str(foundPoints);
+                }
+            }
+        }
+    }
+    delete currNeighbour;
+    if (noFoundPoints)
+        delete foundPoints;
+    return returnData;
+}
 
 // void HashTables::PrintHashTables()
 // {
