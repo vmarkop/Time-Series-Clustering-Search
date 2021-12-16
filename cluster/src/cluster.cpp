@@ -13,8 +13,8 @@
 #include "kMeans.h"
 #include "methods.h"
 
-#include "../../lib/mathUtils.h"
-#include "../../lib/projectUtils.h"
+#include "mathUtils.h"
+#include "projectUtils.h"
 
 int main(int argc, char **argv)
 {

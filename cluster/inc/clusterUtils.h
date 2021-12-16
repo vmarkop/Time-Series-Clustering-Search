@@ -19,6 +19,7 @@
 #define CLASSIC_METHOD 0
 #define LSH_METHOD 1
 #define HYPERCUBE_METHOD 2
+#define FRECHET_METHOD 3
 
 #define TOL (50.0)
 

@@ -5,7 +5,7 @@
 #include "../../lsh/inc/hashTable.h"
 #include "../../hypercube/inc/HChashTable.h"
 #include "clusterUtils.h"
-#include "../../lib/projectUtils.h"
+#include "projectUtils.h"
 typedef struct duplStruct
 {
     PointPtr point;

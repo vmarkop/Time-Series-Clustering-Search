@@ -3,7 +3,7 @@
 
 #include <string>
 #include "HChashTable.h"
-#include "../../lib/mathUtils.h"
+#include "mathUtils.h"
 
 #define DEF_K 14
 #define DEF_M 10

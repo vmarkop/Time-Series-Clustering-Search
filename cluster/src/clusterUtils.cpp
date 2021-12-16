@@ -467,6 +467,46 @@ int execCluster(inputData *CLData, std::vector<Cluster> *clusters, std::vector<P
             count++;
         }
     }
+    else if (CLData->method == FRECHET_METHOD)
+    {
+        FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
+
+        for (int i = 0; i < CLData->numberOfInputPoints; i++)
+            HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints))[i]);
+        double change = INT32_MAX * 1.0;
+        int count = 0;
+        while (change >= TOL && count < 30)
+        {
+            if (flag)
+            {
+                for (int i = 0; i < CLData->number_of_clusters; i++)
+                {
+                    delete (*centroidPoints)[i];
+                    (*centroidPoints)[i] = tempCentroidPoints[i];
+                    (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                }
+                tempCentroidPoints.clear();
+            }
+            else
+                flag = true;
+            for (int c = 0; c < CLData->number_of_clusters; c++)
+            {
+                (*clusters)[c].points.clear();
+                (*clusters)[c].size = 0;
+            }
+            frechet_method(&HashTablesObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
+            change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension);
+
+            std::cout << "Change " << change << "," << count << std::endl;
+            int totalPoints = 0;
+            for (int i = 0; i < CLData->number_of_clusters; i++)
+            {
+                totalPoints += (*clusters)[i].size;
+            }
+            std::cout << "Total points: " << totalPoints << std::endl;
+            count++;
+        }
+    }
     return EXIT_SUCCESS;
 }
 
