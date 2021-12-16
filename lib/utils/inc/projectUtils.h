@@ -48,6 +48,14 @@ typedef struct kNeighboursStruct
     int size; // number of requested (k) nearest neighbours
 } kNeighbours;
 
+typedef struct treeNode treeNode;
+typedef struct treeNode *treeNodePtr;
+typedef struct treeNode
+{
+    PointPtr curve;
+    treeNodePtr rightChld, leftChld;
+} treeNode;
+
 struct BY_ID
 {
     // Source: https://stackoverflow.com/questions/2999135/how-can-i-sort-the-vector-elements-using-members-as-the-key-in-c
@@ -97,5 +105,7 @@ void curveToPoint(PointPtr _p, crvPtr _c, int dimension);
 double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension);
 Curve *convertToFredCurve(PointPtr p, int dim);
 void deleteCrv(crvPtr _curve);
+
+treeNodePtr buildTree(double height);
 
 #endif
