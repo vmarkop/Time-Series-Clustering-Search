@@ -1,4 +1,5 @@
 #include <fstream>
+#include <unistd.h>
 
 #include "../inc/projectUtils.h"
 #include "../inc/mathUtils.h"
@@ -422,7 +423,6 @@ double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension)
 {
     Curve *fp = convertToFredCurve(p, dimension);
     Curve *fq = convertToFredCurve(q, dimension);
-
     struct Frechet::Continuous::Distance dist = Frechet::Continuous::distance(*fp, *fq);
     delete fp;
     delete fq;
@@ -435,10 +435,13 @@ double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension)
 
 Curve *convertToFredCurve(PointPtr p, int dim)
 {
-    Points fp(1);
+    Points fp(2);
     for (int i = 0; i < dim; i++)
     {
-        Point t(p->coords[i]);
+        Point t(2);
+        t.resize(2);
+        t[0] = p->coords[i * 2];
+        t[1] = p->coords[i * 2 + 1];
         fp.add(t);
     }
 
@@ -452,5 +455,4 @@ void deleteCrv(crvPtr _curve)
     {
         delete (*_curve)[i];
     }
-    // delete _curve;
 }
