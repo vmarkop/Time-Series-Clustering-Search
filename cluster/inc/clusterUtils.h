@@ -67,6 +67,18 @@ double calculateChanges(std::vector<PointPtr> *centroids,
                         std::vector<Cluster> *clusters,
                         std::vector<PointPtr> *newCentroids,
                         int dimension);
+double calculateChangesCurve(std::vector<PointPtr> *centroids,
+                             std::vector<Cluster> *clusters,
+                             std::vector<PointPtr> *newCentroids,
+                             int dimension);
+PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2);
+void computeOptimalTraversal(std::vector<std::vector<double>> *_c,
+                             std::vector<std::vector<int>> *traversal,
+                             int dimension);
+PointPtr findMean(treeNodePtr treeNode);
+void fillTree(treeNodePtr treeNode,
+              std::vector<PointPtr> c_points,
+              std::vector<int> *inp);
 int getInputData(int argc, char **argv, inputData *CLData);
 int execCluster(inputData *CLData,
                 std::vector<Cluster> *clusters,

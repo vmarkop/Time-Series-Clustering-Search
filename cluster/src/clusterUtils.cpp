@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "clusterUtils.h"
+#include "lsh_frechet_dsc.h"
 #include "methods.h"
 
 double silhouette_calculator(PointPtr point, std::vector<Cluster> *clusters, int dimension)
@@ -110,18 +111,19 @@ double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *
     return change;
 }
 
-double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *newCentroids, int dimension)
+double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *newCentroids, int dimension)
 {
     std::vector<treeNodePtr> trees;
     trees.resize(clusters->size());
     std::vector<int> inputed;
-    PointPtr mean;
+    double changes = 0;
     for (int i = 0; i < clusters->size(); i++)
     {
         trees[i] = buildTree(floor(log2((*clusters)[i].points.size())));
         fillTree(trees[i], (*clusters)[i].points, &inputed);
         inputed.clear();
-        mean = findMean(trees[i]);
+        (*newCentroids)[i] = findMean(trees[i]);
+        changes += DFDistance((*centroids)[i], (*newCentroids)[i], dimension * 2);
     }
 
     return change;
@@ -129,10 +131,52 @@ double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *
 
 PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
 {
+    std::vector<std::vector<double>> _c;
+    double dis = DFDistance(curve1, curve2, curve1.size(), &_c);
+    std::vector<std::vector<int>> traversal;
+    computeOptimalTraversal(&_c, &traversal, curve1->coords.size() / 2);
+    PointPtr retPoint = New PointStruct;
+    for (int i = 0; i < curve1->coords.size() / 2; i++)
+    {
+        double ii = (curve1->coords[traversal[i][0]] + curve2->coords[traversal[i][0]]) / 2;
+        double jj = (curve1->coords[traversal[i][1]] + curve2->coords[traversal[i][1]]) / 2;
+        retPoint->coords.push_back(ii);
+        retPoint->coords.push_back(jj);
+    }
+    return retPoint;
 }
 
-PointPtr
-findMean(treeNodePtr treeNode)
+void computeOptimalTraversal(std::vector<std::vector<double>> *_c, std::vector<std::vector<int>> *traversal, int dimension)
+{
+    std::vector<std::vector<int>> traversal;
+    std::vector<int> element;
+    element.resize(2);
+    int index_p = dimension - 1, index_q = dimension - 1;
+    element[0] = index_p, element[1] = index_q;
+    traversal->push_back(element);
+    while (index_q != 0 && index_p != 0)
+    {
+        int minIdx = minIdx(_c[index_p - 1, index_q], _c[index_p, index_q - 1], _c[index_p - 1, index_q - 1]); // Fix
+        if (minIdx == 0)
+        {
+            element[0] = --index_p, element[1] = index_q;
+            traversal->push_back(element);
+        }
+        else if (minIdx == 0)
+        {
+            element[0] = index_p, element[1] = --index_q;
+            traversal->push_back(element);
+        }
+        else
+        {
+            element[0] = --index_p, element[1] = --index_q;
+            traversal->push_back(element);
+        }
+    }
+    std::reverse(traversal->begin(), traversal->end());
+}
+
+PointPtr findMean(treeNodePtr treeNode)
 {
     if (treeNode->curve != NULL)
         return treeNode->curve;
