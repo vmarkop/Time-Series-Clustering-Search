@@ -14,23 +14,34 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
     foundPointIDsPerCluster.resize(CLData->number_of_clusters);
 
     int inputPointsSize = inputPoints->size();
+    std::cout << "123" << std::endl;
     double currRadius = minFrDistBetweenCentroids(centroids, CLData->number_of_clusters, CLData->dimension) / 2;
     std::vector<std::vector<PointPtr>> clusterPoints;
     std::vector<PointPtr> duplicates;
     clusterPoints.resize(CLData->number_of_clusters);
-
+    std::cout << "Hewtrgvs0" << std::endl;
     int initialInputPoints = inputPointsSize;
-    int initialRadius = currRadius;
+    double initialRadius = currRadius;
     int prevNumOfFound = 0;
     int currNumOfFound = 0;
     int numOfFound = 0;
-    while (initialInputPoints - numOfFound >= initialInputPoints / 10 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1))
+    std::cout << "initialInput points" << initialInputPoints << std::endl;
+    std::cout << "numOfFound" << numOfFound << std::endl;
+    std::cout << "currad" << currRadius << std::endl;
+    std::cout << "InitialRadius" << initialRadius << std::endl;
+    std::cout << "currNumOfFound" << currNumOfFound << std::endl;
+    std::cout << "prevNumOfFound" << prevNumOfFound << std::endl;
+    // int iiiiiiiii = 0;
+    while (initialInputPoints - numOfFound >= initialInputPoints / 2 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1))
     {
+        std::cout << "Hello12345" << std::endl;
         prevNumOfFound = currNumOfFound;
         currNumOfFound = 0;
         for (int c = 0; c < CLData->number_of_clusters; c++)
         {
+            std::cout << "Hello0" << std::endl;
             clusterPoints[c] = HashTablesObject->range_search((*centroids)[c], currRadius, &(foundPointIDsPerCluster[c]));
+            std::cout << "Hello01" << std::endl;
             // std::cout << "ClP[c] = " << clusterPoints[c].size() << std::endl;
         }
         std::vector<std::string> tempArray;
@@ -91,6 +102,8 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
                     clusterPoints[CentroidsToBeErased[i]].erase(clusterPoints[CentroidsToBeErased[i]].begin() + position[i]);
                 }
             }
+            // if (iiiiiiiii > 5)
+            //     break;
         }
         for (int c = 0; c < CLData->number_of_clusters; c++)
         {
@@ -339,7 +352,7 @@ double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Clust
         fillTree(trees[i], (*clusters)[i].points, &inputed);
         inputed.clear();
         (*newCentroids)[i] = findMean(trees[i]);
-        changes += DFDistance((*centroids)[i], (*newCentroids)[i], dimension * 2);
+        changes += DFDistance((*centroids)[i], (*newCentroids)[i], dimension);
     }
 
     return changes;
@@ -349,7 +362,7 @@ PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
 {
     std::vector<std::vector<double>> *_c = new std::vector<std::vector<double>>;
 
-    double dis = DFDistance(curve1, curve2, curve1->coords.size(), _c);
+    double dis = DFDistance(curve1, curve2, curve1->coords.size() / 2, _c);
     std::vector<std::vector<int>> traversal;
     computeOptimalTraversal(_c, &traversal, curve1->coords.size() / 2);
     PointPtr retPoint = new PointStruct;
@@ -810,6 +823,7 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                 }
                 std::cout << "Total points: " << totalPoints << std::endl;
                 count++;
+                return 0;
             }
         }
         else

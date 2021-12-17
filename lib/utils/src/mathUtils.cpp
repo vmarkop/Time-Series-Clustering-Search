@@ -56,9 +56,9 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
     else
         _c->clear();
     std::vector<PointPtr> p_points, q_points;
-    p_points.resize(dimension / 2);
-    q_points.resize(dimension / 2);
-    for (int i = 0; i < dimension / 2; i++)
+    p_points.resize(dimension);
+    q_points.resize(dimension);
+    for (int i = 0; i < dimension; i++)
     {
         p_points[i] = new PointStruct;
         p_points[i]->id = p->id;
@@ -73,15 +73,15 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
         q_points[i]->coords[1] = q->coords[(i * 2) + 1];
     }
     // Initializing _c dimention
-    _c->resize(dimension / 2);
-    for (int i = 0; i < dimension / 2; i++)
+    _c->resize(dimension);
+    for (int i = 0; i < dimension; i++)
     {
-        (*_c)[i].resize(dimension / 2);
+        (*_c)[i].resize(dimension);
     }
     (*_c)[0][0] = euclideanDistance(p_points[0], q_points[0], 2);
-    for (int i = 0; i < dimension / 2; i++)
+    for (int i = 0; i < dimension; i++)
     {
-        for (int j = i; j < dimension / 2; j++)
+        for (int j = i; j < dimension; j++)
         {
             if (i == 0 && j > 0)
             {
@@ -136,7 +136,7 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
             }
         }
     }
-    return (*_c)[(dimension / 2) - 1][(dimension / 2) - 1];
+    return (*_c)[(dimension)-1][(dimension)-1];
 }
 
 double uniformDistributionGenerator(const double alpha, const double beta)
