@@ -67,10 +67,10 @@ std::vector<int> get_2_closest_clusters(PointPtr point,
                                         std::vector<Cluster> *clusters,
                                         int dimensions);
 PointPtr update_centroid(ClusterPtr cluster, int dimension);
-double calculateChanges(std::vector<PointPtr> *centroids,
-                        std::vector<Cluster> *clusters,
+double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters,
                         std::vector<PointPtr> *newCentroids,
-                        int dimension);
+                        int dimension,
+                        int method);
 double calculateChangesCurve(std::vector<PointPtr> *centroids,
                              std::vector<Cluster> *clusters,
                              std::vector<PointPtr> *newCentroids,

@@ -63,7 +63,10 @@ int main(int argc, char **argv)
     std::cout << "Assigning points to clusters..." << std::endl;
 
     auto cluster_start = std::chrono::high_resolution_clock::now();
-    execCluster(CLData, &clusters, &inputPoints, &centroidPoints);
+    if (execCluster(CLData, &clusters, &inputPoints, &centroidPoints) == EXIT_FAILURE)
+    {
+        return EXIT_FAILURE;
+    }
     auto cluster_end = std::chrono::high_resolution_clock::now();
 
     int tCluster = std::chrono::duration_cast<std::chrono::milliseconds>(cluster_end - cluster_start).count();
@@ -78,7 +81,7 @@ int main(int argc, char **argv)
         return EXIT_FAIL_OUTPUT_ERR;
     }
 
-    //Deleting Data Structures
+    // Deleting Data Structures
 
     return EXIT_SUCCESS;
 }

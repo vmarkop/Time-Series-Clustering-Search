@@ -265,8 +265,12 @@ std::vector<int> get_2_closest_clusters(PointPtr point, std::vector<Cluster> *cl
     return closestClusters;
 }
 
-double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *newCentroids, int dimension)
+double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *newCentroids, int dimension, int method)
 {
+    if (method == UPDATE_FRECHET)
+    {
+        return calculateChangesCurve(centroids, clusters, newCentroids, dimension);
+    }
     int numOfClusters = clusters->size();
 
     double change = 0.0;
@@ -632,7 +636,7 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                 (*clusters)[index].points.push_back((*inputPoints)[i]);
                 (*clusters)[index].size++;
             }
-            change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension);
+            change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
 
             std::cout << "Change " << change << "," << count << std::endl;
             int totalPoints = 0;
@@ -646,122 +650,147 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
     }
     else if (CLData->method == LSH_METHOD)
     {
-        HashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
-
-        for (int i = 0; i < CLData->numberOfInputPoints; i++)
-            HashTablesObject.HashTables::InsertPoint(((*inputPoints))[i]);
-        double change = INT32_MAX * 1.0;
-        int count = 0;
-        while (change >= TOL && count < 30)
+        if (CLData->update == UPDATE_VECTOR)
         {
-            if (flag)
+            HashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
+
+            for (int i = 0; i < CLData->numberOfInputPoints; i++)
+                HashTablesObject.HashTables::InsertPoint(((*inputPoints))[i]);
+            double change = INT32_MAX * 1.0;
+            int count = 0;
+            while (change >= TOL && count < 30)
             {
+                if (flag)
+                {
+                    for (int i = 0; i < CLData->number_of_clusters; i++)
+                    {
+                        delete (*centroidPoints)[i];
+                        (*centroidPoints)[i] = tempCentroidPoints[i];
+                        (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    }
+                    tempCentroidPoints.clear();
+                }
+                else
+                    flag = true;
+                for (int c = 0; c < CLData->number_of_clusters; c++)
+                {
+                    (*clusters)[c].points.clear();
+                    (*clusters)[c].size = 0;
+                }
+                lsh_method(&HashTablesObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
+                change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
+
+                std::cout << "Change " << change << "," << count << std::endl;
+                int totalPoints = 0;
                 for (int i = 0; i < CLData->number_of_clusters; i++)
                 {
-                    delete (*centroidPoints)[i];
-                    (*centroidPoints)[i] = tempCentroidPoints[i];
-                    (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    totalPoints += (*clusters)[i].size;
                 }
-                tempCentroidPoints.clear();
+                std::cout << "Total points: " << totalPoints << std::endl;
+                count++;
             }
-            else
-                flag = true;
-            for (int c = 0; c < CLData->number_of_clusters; c++)
-            {
-                (*clusters)[c].points.clear();
-                (*clusters)[c].size = 0;
-            }
-            lsh_method(&HashTablesObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
-            change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension);
-
-            std::cout << "Change " << change << "," << count << std::endl;
-            int totalPoints = 0;
-            for (int i = 0; i < CLData->number_of_clusters; i++)
-            {
-                totalPoints += (*clusters)[i].size;
-            }
-            std::cout << "Total points: " << totalPoints << std::endl;
-            count++;
+        }
+        else
+        {
+            std::cerr << "Cannot use Classic LSH assignment with time curve update" << std::endl;
+            return EXIT_FAILURE;
         }
     }
     else if (CLData->method == HYPERCUBE_METHOD)
     {
-        HChashTable HypercubeObject(CLData->dimension, CLData->number_of_hypercube_dimensions, CLData->number_of_probes, CLData->max_number_M_hypercube);
-
-        for (int i = 0; i < CLData->numberOfInputPoints; i++)
-            HypercubeObject.HChashTable::InsertPoint((*inputPoints)[i]);
-        double change = INT32_MAX * 1.0;
-        int count = 0;
-        while (change > TOL && count < 30)
+        if (CLData->update == UPDATE_VECTOR)
         {
-            if (flag)
+            HChashTable HypercubeObject(CLData->dimension, CLData->number_of_hypercube_dimensions, CLData->number_of_probes, CLData->max_number_M_hypercube);
+
+            for (int i = 0; i < CLData->numberOfInputPoints; i++)
+                HypercubeObject.HChashTable::InsertPoint((*inputPoints)[i]);
+            double change = INT32_MAX * 1.0;
+            int count = 0;
+            while (change > TOL && count < 30)
             {
+                if (flag)
+                {
+                    for (int i = 0; i < CLData->number_of_clusters; i++)
+                    {
+                        delete (*centroidPoints)[i];
+                        (*centroidPoints)[i] = tempCentroidPoints[i];
+                        (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    }
+                    tempCentroidPoints.clear();
+                }
+                else
+                    flag = true;
+                for (int c = 0; c < CLData->number_of_clusters; c++)
+                {
+                    (*clusters)[c].points.clear();
+                    (*clusters)[c].size = 0;
+                }
+                hyperCube_method(&HypercubeObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
+                change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
+
+                std::cout << "Change " << change << "," << count << std::endl;
+                int totalPoints = 0;
                 for (int i = 0; i < CLData->number_of_clusters; i++)
                 {
-                    delete (*centroidPoints)[i];
-                    (*centroidPoints)[i] = tempCentroidPoints[i];
-                    (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    totalPoints += (*clusters)[i].size;
                 }
-                tempCentroidPoints.clear();
+                std::cout << "Total points: " << totalPoints << std::endl;
+                count++;
             }
-            else
-                flag = true;
-            for (int c = 0; c < CLData->number_of_clusters; c++)
-            {
-                (*clusters)[c].points.clear();
-                (*clusters)[c].size = 0;
-            }
-            hyperCube_method(&HypercubeObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
-            change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension);
-
-            std::cout << "Change " << change << "," << count << std::endl;
-            int totalPoints = 0;
-            for (int i = 0; i < CLData->number_of_clusters; i++)
-            {
-                totalPoints += (*clusters)[i].size;
-            }
-            std::cout << "Total points: " << totalPoints << std::endl;
-            count++;
+        }
+        else
+        {
+            std::cerr << "Cannot use Classic HyperCube assignment with time curve update" << std::endl;
+            return EXIT_FAILURE;
         }
     }
     else if (CLData->method == FRECHET_D_METHOD)
     {
-        FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
-
-        for (int i = 0; i < CLData->numberOfInputPoints; i++)
-            HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints))[i]);
-        double change = INT32_MAX * 1.0;
-        int count = 0;
-        while (change >= TOL && count < 30)
+        if (CLData->update == UPDATE_VECTOR)
         {
-            if (flag)
+
+            FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
+
+            for (int i = 0; i < CLData->numberOfInputPoints; i++)
+                HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints))[i]);
+            double change = INT32_MAX * 1.0;
+            int count = 0;
+            while (change >= TOL && count < 30)
             {
+                if (flag)
+                {
+                    for (int i = 0; i < CLData->number_of_clusters; i++)
+                    {
+                        delete (*centroidPoints)[i];
+                        (*centroidPoints)[i] = tempCentroidPoints[i];
+                        (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    }
+                    tempCentroidPoints.clear();
+                }
+                else
+                    flag = true;
+                for (int c = 0; c < CLData->number_of_clusters; c++)
+                {
+                    (*clusters)[c].points.clear();
+                    (*clusters)[c].size = 0;
+                }
+                frechet_method(&HashTablesObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
+                change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
+
+                std::cout << "Change " << change << "," << count << std::endl;
+                int totalPoints = 0;
                 for (int i = 0; i < CLData->number_of_clusters; i++)
                 {
-                    delete (*centroidPoints)[i];
-                    (*centroidPoints)[i] = tempCentroidPoints[i];
-                    (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    totalPoints += (*clusters)[i].size;
                 }
-                tempCentroidPoints.clear();
+                std::cout << "Total points: " << totalPoints << std::endl;
+                count++;
             }
-            else
-                flag = true;
-            for (int c = 0; c < CLData->number_of_clusters; c++)
-            {
-                (*clusters)[c].points.clear();
-                (*clusters)[c].size = 0;
-            }
-            frechet_method(&HashTablesObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
-            change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension);
-
-            std::cout << "Change " << change << "," << count << std::endl;
-            int totalPoints = 0;
-            for (int i = 0; i < CLData->number_of_clusters; i++)
-            {
-                totalPoints += (*clusters)[i].size;
-            }
-            std::cout << "Total points: " << totalPoints << std::endl;
-            count++;
+        }
+        else
+        {
+            std::cerr << "Cannot use LSH Frechet assignment with vector update" << std::endl;
+            return EXIT_FAILURE;
         }
     }
     return EXIT_SUCCESS;
