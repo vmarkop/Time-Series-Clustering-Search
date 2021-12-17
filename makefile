@@ -30,7 +30,7 @@ search: $(SRCSEARCH)/lsh.cpp
 # 	g++ $(CCFLAGS) -o bin/cube.out $(SRCCUBE)/cube.cpp $(SRCCUBE)/HChashTable.cpp $(SRCCUBE)/hypercubeUtils.cpp $(SRC)$(SRCUTIL)/mathUtils.cpp $(SRC)$(SRCUTIL)/projectUtils.cpp -I $(LIB)$(INCUTIL) -I $(INCCUBE)
 
 cluster.out: $(SRCCLUSTER)/cluster.cpp
-	g++ $(CCFLAGS) -o bin/cluster.out $(SRCCLUSTER)/cluster.cpp $(SRCSEARCH)/lshUtils.cpp $(SRCLSH)/lsh_frechet_cont.cpp $(SRCLSH)/lsh_frechet_dsc.cpp $(SRCCLUSTER)/clusterUtils.cpp $(SRCLSH)/hashTable.cpp $(SRCCUBE)/HChashTable.cpp $(SRCCLUSTER)/kMeans.cpp $(SRCCLUSTER)/methods.cpp $(LIB)$(SRCUTIL)/mathUtils.cpp $(LIB)$(SRCUTIL)/projectUtils.cpp -I $(LIB)$(INCUTIL) -I $(INCCLUSTER) -I $(INCLSH) -I $(INCCUBE) -I $(INCSEARCH)
+	g++ $(CCFLAGS) -o bin/cluster.out $(SRCCLUSTER)/cluster.cpp $(SRCSEARCH)/lshUtils.cpp $(SRCLSH)/lsh_frechet_dsc.cpp $(SRCCLUSTER)/clusterUtils.cpp $(SRCLSH)/hashTable.cpp $(SRCCUBE)/HChashTable.cpp $(SRCCLUSTER)/kMeans.cpp $(SRCCLUSTER)/methods.cpp $(LIB)$(SRCUTIL)/mathUtils.cpp $(LIB)$(SRCUTIL)/projectUtils.cpp -I $(LIB)$(INCUTIL) -I $(INCCLUSTER) -I $(INCLSH) -I $(INCCUBE) -I $(INCSEARCH)
 
 clean:
 	rm -r bin/* outputFiles/*

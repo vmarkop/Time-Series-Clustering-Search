@@ -13,7 +13,6 @@ FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperpla
     this->numberOfHyperplanes = numberOfHyperplanes;
     this->numberOfPoints = numberOfPoints;
     this->TableSize = tableSize;
-    std::cout << "TABLA" << L << std::endl;
 
     this->dim = dimension;
     this->hash_tables.resize(L);
@@ -31,11 +30,9 @@ FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperpla
 
         this->hash_tables[i].resize(this->TableSize);
 
-        std::cout << "TABLA" << L << std::endl;
         this->hash_tables[i][0].ID.push_back(1);
         this->hash_tables[i][0].ID.clear();
 
-        std::cout << "TABLA" << L << std::endl;
         this->t[i].resize(numberOfHyperplanes);
         this->ri[i].resize(numberOfHyperplanes);
         this->v[i].resize(numberOfHyperplanes);

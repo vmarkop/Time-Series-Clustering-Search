@@ -58,17 +58,11 @@ void FrechetContinuousHashTables::FrContInsertPoint(PointPtr point)
         std::vector<PointPtr> _curve, snapped_curve;
 
         pointToCurve(concated_point, &_curve, this->dim);
-        std::cout << "cout00" << std::endl;
         filter_curve(&_curve, this->dim, EPSILON);
-        std::cout << "cout01" << std::endl;
         snap_curve_cont(&snapped_curve, &_curve, this->_delta, this->dim);
-        std::cout << "cout02" << std::endl;
         minimaximize_curve_cont(&snapped_curve, this->dim);
-        std::cout << "cout03" << std::endl;
         pad_curve_new(&snapped_curve, this->dim);
-        std::cout << "cout04" << std::endl;
         curveToPoint(concated_point, &snapped_curve, this->dim);
-        std::cout << "cout05" << std::endl;
 
         deleteCrv(&snapped_curve);
         deleteCrv(&_curve);
@@ -272,3 +266,31 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
 //         }
 //     }
 // }
+
+double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension)
+{
+    Curve *fp = convertToFredCurve(p, dimension);
+    Curve *fq = convertToFredCurve(q, dimension);
+    struct Frechet::Continuous::Distance dist = Frechet::Continuous::distance(*fp, *fq);
+    delete fp;
+    delete fq;
+    return dist.value;
+    // turn point p to Fred Curve
+    // turn point q to Fred Curve
+    // call Fred Cont Dist
+    // return Fred Cont Dist
+}
+
+Curve *convertToFredCurve(PointPtr p, int dim)
+{
+    Points fp(1);
+    for (int i = 0; i < dim; i++)
+    {
+        Point t(1);
+        t.set(0, p->coords[i * 2 + 1]);
+        fp.add(t);
+    }
+
+    Curve *curve = new Curve(fp);
+    return curve;
+}

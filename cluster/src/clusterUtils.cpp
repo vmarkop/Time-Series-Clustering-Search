@@ -5,6 +5,194 @@
 #include "lsh_frechet_dsc.h"
 #include "methods.h"
 
+void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, const std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints)
+{
+    std::vector<PointPtr> foundPoints;
+    std::vector<std::string> foundPointIDs;
+    std::vector<std::vector<std::string>> foundPointIDsPerCluster;
+
+    foundPointIDsPerCluster.resize(CLData->number_of_clusters);
+
+    int inputPointsSize = inputPoints->size();
+    double currRadius = minDistBetweenCentroids(centroids, CLData->number_of_clusters, CLData->dimension) / 2;
+    std::vector<std::vector<PointPtr>> clusterPoints;
+    std::vector<PointPtr> duplicates;
+    clusterPoints.resize(CLData->number_of_clusters);
+
+    int initialInputPoints = inputPointsSize;
+    int initialRadius = currRadius;
+    int prevNumOfFound = 0;
+    int currNumOfFound = 0;
+    int numOfFound = 0;
+    while (initialInputPoints - numOfFound >= initialInputPoints / 10 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1))
+    {
+        prevNumOfFound = currNumOfFound;
+        currNumOfFound = 0;
+        for (int c = 0; c < CLData->number_of_clusters; c++)
+        {
+            clusterPoints[c] = HashTablesObject->range_search((*centroids)[c], currRadius, &(foundPointIDsPerCluster[c]));
+            // std::cout << "ClP[c] = " << clusterPoints[c].size() << std::endl;
+        }
+        std::vector<std::string> tempArray;
+        for (int i = 0; i < CLData->number_of_clusters; i++)
+        {
+            std::merge(foundPointIDsPerCluster[i].begin(), foundPointIDsPerCluster[i].end(), tempArray.begin(), tempArray.end(), std::back_inserter(foundPointIDs));
+            tempArray.clear();
+            for (auto currPoint : foundPointIDs)
+            {
+                tempArray.push_back(currPoint);
+            }
+        }
+        for (int i = 0; i < CLData->number_of_clusters; i++)
+        {
+            foundPointIDsPerCluster[i].clear();
+            for (auto currPoint : foundPointIDs)
+            {
+                foundPointIDsPerCluster[i].push_back(currPoint);
+            }
+        }
+
+        duplicates = find_duplicates(clusterPoints, CLData->number_of_clusters);
+        for (auto currPoint : duplicates)
+        {
+            std::vector<int> CentroidsToBeErased;
+            std::vector<int> position;
+            for (int c = 0; c < CLData->number_of_clusters; c++)
+            {
+                for (int p = 0; p < clusterPoints[c].size(); p++)
+                {
+
+                    if (currPoint->id == clusterPoints[c][p]->id)
+                    {
+                        CentroidsToBeErased.push_back(c);
+                        position.push_back(p);
+                    }
+                }
+            }
+            double minDist = INT_MAX;
+            int minCentroid;
+            double currDist = 0.0;
+            int currCentroid;
+
+            for (int i = 0; i < CentroidsToBeErased.size(); i++)
+            {
+                currCentroid = i;
+                currDist = DFDistance((*centroids)[currCentroid], currPoint, CLData->dimension);
+                if (currDist < minDist)
+                {
+                    minDist = currDist;
+                    minCentroid = currCentroid;
+                }
+            }
+            for (int i = 0; i < CentroidsToBeErased.size(); i++)
+            {
+                if (i != minCentroid)
+                {
+                    clusterPoints[CentroidsToBeErased[i]].erase(clusterPoints[CentroidsToBeErased[i]].begin() + position[i]);
+                }
+            }
+        }
+        for (int c = 0; c < CLData->number_of_clusters; c++)
+        {
+            for (int pointIndex = 0; pointIndex < clusterPoints[c].size(); pointIndex++)
+            {
+                (*clusters)[c].points.push_back(clusterPoints[c][pointIndex]);
+                (*clusters)[c].size++;
+                currNumOfFound++;
+            }
+            clusterPoints[c].clear();
+        }
+        // std::sort(foundPointIDs.begin(), foundPointIDs.end());
+        currRadius *= 2;
+        numOfFound += currNumOfFound;
+    }
+    int index = 0;
+
+    for (auto currPoint : (*inputPoints))
+    {
+        bool found = false;
+        for (int c = 0; c < CLData->number_of_clusters; c++)
+        {
+            // search for inputPoint in every cluster
+            if (find((*clusters)[c].points.begin(), (*clusters)[c].points.end(), currPoint) != (*clusters)[c].points.end())
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            // if not in any clusters, find closest manually
+            index = lloyd_method(centroids, currPoint, CLData->dimension);
+            (*clusters)[index].points.push_back(currPoint);
+            (*clusters)[index].size++;
+        }
+    }
+    foundPoints.clear();
+    foundPointIDs.clear();
+    for (int c = 0; c < CLData->number_of_clusters; c++)
+        foundPointIDsPerCluster[c].clear();
+    foundPointIDsPerCluster.clear();
+}
+
+double minDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension)
+{
+    double minDist = INT_MAX;
+    double currDist = 0.0;
+
+    for (int i = 0; i < numOfCentroids; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            currDist = euclideanDistance((*centroidPoints)[i], (*centroidPoints)[j], dimension);
+            if (currDist < minDist)
+                minDist = currDist;
+        }
+    }
+    return minDist;
+}
+
+std::vector<PointPtr> find_duplicates(std::vector<std::vector<PointPtr>> clusterPoints, int numOfClusters)
+{
+    std::vector<PointPtr> mainArray;
+    std::vector<PointPtr> tempArray;
+    std::vector<PointPtr> duplPoints;
+    for (int i = 0; i < numOfClusters; i++)
+    {
+        mainArray.clear();
+        std::merge((clusterPoints)[i].begin(), (clusterPoints)[i].end(), tempArray.begin(), tempArray.end(), std::back_inserter(mainArray), BY_ID());
+        tempArray.clear();
+        for (auto currPoint : mainArray)
+        {
+            tempArray.push_back(currPoint);
+        }
+    }
+
+    if (!mainArray.empty())
+    {
+        PointPtr currPoint = mainArray[0];
+        int i = 1;
+        while (i < mainArray.size())
+        {
+            if (currPoint->id == mainArray[i]->id)
+            {
+                duplPoints.push_back(currPoint);
+                i++;
+                while (i < mainArray.size())
+                {
+                    if (currPoint->id != mainArray[i]->id)
+                        break;
+                    i++;
+                }
+                continue;
+            }
+            currPoint = mainArray[i];
+            i++;
+        }
+    }
+    return duplPoints;
+}
+
 double silhouette_calculator(PointPtr point, std::vector<Cluster> *clusters, int dimension)
 {
 
@@ -92,7 +280,7 @@ double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *
 
     for (int i = 0; i < numOfClusters; i++)
     {
-        (*newCentroids)[i] = new Point(*((*centroids)[i]));
+        (*newCentroids)[i] = new PointStruct(*((*centroids)[i]));
         int numOfPoints = (*clusters)[i].points.size();
         for (int j = 0; j < dimension; j++)
         {
@@ -126,16 +314,16 @@ double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Clust
         changes += DFDistance((*centroids)[i], (*newCentroids)[i], dimension * 2);
     }
 
-    return change;
+    return changes;
 }
 
 PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
 {
     std::vector<std::vector<double>> _c;
-    double dis = DFDistance(curve1, curve2, curve1.size(), &_c);
+    double dis = DFDistance(curve1, curve2, curve1->coords.size(), &_c);
     std::vector<std::vector<int>> traversal;
     computeOptimalTraversal(&_c, &traversal, curve1->coords.size() / 2);
-    PointPtr retPoint = New PointStruct;
+    PointPtr retPoint = new PointStruct;
     for (int i = 0; i < curve1->coords.size() / 2; i++)
     {
         double ii = (curve1->coords[traversal[i][0]] + curve2->coords[traversal[i][0]]) / 2;
@@ -148,7 +336,7 @@ PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
 
 void computeOptimalTraversal(std::vector<std::vector<double>> *_c, std::vector<std::vector<int>> *traversal, int dimension)
 {
-    std::vector<std::vector<int>> traversal;
+    // std::vector<std::vector<int>> traversal;
     std::vector<int> element;
     element.resize(2);
     int index_p = dimension - 1, index_q = dimension - 1;
@@ -156,7 +344,8 @@ void computeOptimalTraversal(std::vector<std::vector<double>> *_c, std::vector<s
     traversal->push_back(element);
     while (index_q != 0 && index_p != 0)
     {
-        int minIdx = minIdx(_c[index_p - 1, index_q], _c[index_p, index_q - 1], _c[index_p - 1, index_q - 1]); // Fix
+        int minIdx = minIndx((*_c)[index_p - 1][index_q], (*_c)[index_p][index_q - 1], (*_c)[index_p - 1][index_q - 1]); // Fix
+
         if (minIdx == 0)
         {
             element[0] = --index_p, element[1] = index_q;
@@ -182,7 +371,7 @@ PointPtr findMean(treeNodePtr treeNode)
         return treeNode->curve;
     PointPtr meanLeft = findMean(treeNode->leftChld);
     PointPtr meanRight = findMean(treeNode->rightChld);
-    PointPtr mean = computeMeanCurve(treeNode->leftChld, treeNode->rightChld);
+    PointPtr mean = computeMeanCurve(treeNode->leftChld->curve, treeNode->rightChld->curve);
     return mean;
 }
 
@@ -206,10 +395,10 @@ void fillTree(treeNodePtr treeNode, std::vector<PointPtr> c_points, std::vector<
     }
 }
 
-int getInputData(int argc, char **argv, inputData *CLData)
+int getInputData(int argc, char **argv, clusterInputData *CLData)
 {
     std::vector<std::string> found;
-    CLData = new inputData;
+    CLData = new clusterInputData;
 
     // Initializing with default values, which may change depending on the config file's content
     CLData->number_of_vector_hash_tables = DEF_VECTOR_HASH_TABLES;
@@ -384,7 +573,7 @@ int getInputData(int argc, char **argv, inputData *CLData)
     return EXIT_SUCCESS;
 }
 
-int execCluster(inputData *CLData, std::vector<Cluster> *clusters, std::vector<PointPtr> *inputPoints, std::vector<PointPtr> *centroidPoints)
+int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::vector<PointPtr> *inputPoints, std::vector<PointPtr> *centroidPoints)
 {
     std::vector<PointPtr> tempCentroidPoints;
     bool flag = false;
@@ -511,7 +700,7 @@ int execCluster(inputData *CLData, std::vector<Cluster> *clusters, std::vector<P
             count++;
         }
     }
-    else if (CLData->method == FRECHET_METHOD)
+    else if (CLData->method == FRECHET_D_METHOD)
     {
         FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
 
@@ -554,7 +743,7 @@ int execCluster(inputData *CLData, std::vector<Cluster> *clusters, std::vector<P
     return EXIT_SUCCESS;
 }
 
-double evalSilhouette(inputData *CLData, std::vector<Cluster> *clusters)
+double evalSilhouette(clusterInputData *CLData, std::vector<Cluster> *clusters)
 {
     double totalSilhouette = 0.0;
     for (int i = 0; i < CLData->number_of_clusters; i++)
@@ -572,7 +761,7 @@ double evalSilhouette(inputData *CLData, std::vector<Cluster> *clusters)
     return totalSilhouette;
 }
 
-int writeToOutput(inputData *CLData, std::vector<Cluster> *clusters, std::vector<PointPtr> *centroidPoints, double totalSilhouette, int tCluster)
+int writeToOutput(clusterInputData *CLData, std::vector<Cluster> *clusters, std::vector<PointPtr> *centroidPoints, double totalSilhouette, int tCluster)
 {
     std::ofstream outputFile(CLData->outputFileName);
     if (!outputFile.is_open())
@@ -634,7 +823,7 @@ int writeToOutput(inputData *CLData, std::vector<Cluster> *clusters, std::vector
     return EXIT_SUCCESS;
 }
 
-void deleteData(std::vector<PointPtr> *inputPoints, inputData *CLData, std::vector<PointPtr> *centroidPoints)
+void deleteData(std::vector<PointPtr> *inputPoints, clusterInputData *CLData, std::vector<PointPtr> *centroidPoints)
 {
     for (int i = 0; i < CLData->numberOfInputPoints; i++)
         delete (*inputPoints)[i];

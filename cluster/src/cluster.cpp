@@ -18,7 +18,7 @@
 
 int main(int argc, char **argv)
 {
-    inputData *CLData;
+    clusterInputData *CLData;
     int error;
     if ((error = getInputData(argc, argv, CLData)) > 0)
         return error;
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     centroidPoints.resize(CLData->number_of_clusters);
     for (int i = 0; i < CLData->number_of_clusters; i++)
     {
-        centroidPoints[i] = new Point;
+        centroidPoints[i] = new PointStruct;
         centroidPoints[i]->id = "";
         centroidPoints[i]->coords.resize(CLData->dimension);
     }
