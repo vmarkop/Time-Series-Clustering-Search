@@ -395,12 +395,12 @@ void fillTree(treeNodePtr treeNode, std::vector<PointPtr> c_points, std::vector<
     }
 }
 
-int getInputData(int argc, char **argv, clusterInputData *CLData)
+int getCLInputData(int argc, char **argv, clusterInputData *CLData)
 {
     std::vector<std::string> found;
-    CLData = new clusterInputData;
 
     // Initializing with default values, which may change depending on the config file's content
+    CLData->number_of_clusters = 3;
     CLData->number_of_vector_hash_tables = DEF_VECTOR_HASH_TABLES;
     CLData->number_of_vector_hash_functions = DEF_VECTOR_HASH_FUNCTIONS;
     CLData->max_number_M_hypercube = DEF_MAX_NUM_M_CUBE;
@@ -510,27 +510,19 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
         }
     }
     found.clear();
-    std::ifstream configFile(CLData->configFileName);
-    if (!configFile.is_open())
-    {
-        std::cerr << "Could not open the file: '"
-                  << CLData->configFileName << "'"
-                  << std::endl;
-        return EXIT_FAIL_CONFIG_ERR;
-    }
-    std::cout << "Reading config file " << CLData->configFileName << "..." << std::endl;
 
-    std::string line;
+    std::vector<std::string> conflines = get_lines(CLData->configFileName);
 
-    while (getline(configFile, line))
+    for (std::string line : conflines)
     {
-        // inputLines.push_back(line);
+        std::cout << "integer line:" << line << std::endl;
+        line.push_back('\n');
         std::string word = "";
         std::string parameter = "";
         int value = -1;
         for (char x : line)
         {
-            if (x == ' ')
+            if (x == ' ' || x == '\n')
             {
                 if (parameter.empty())
                 {
@@ -540,6 +532,7 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
                 }
                 else if (value == -1)
                 {
+                    std::cout << "integer" << std::endl;
                     if (!is_number(word))
                     {
                         std::cerr << "Parameter [" << parameter << "]: Value '" << word << "' is not an integer" << std::endl;
@@ -582,7 +575,6 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
             CLData->number_of_probes = value;
         }
     }
-    configFile.close();
 
     std::cout << "Config file parsed" << std::endl;
 

@@ -18,14 +18,13 @@
 
 int main(int argc, char **argv)
 {
-    clusterInputData *CLData;
+    clusterInputData *CLData = new clusterInputData;
     int error;
-    if ((error = getInputData(argc, argv, CLData)) > 0)
+    if ((error = getCLInputData(argc, argv, CLData)) > 0)
         return error;
 
-    std::cout << "Getting lines from " << CLData->inputFileName << std::endl;
+    std::cout << "Getting lines" << std::endl;
     std::vector<std::string> inputLines = get_lines(CLData->inputFileName);
-    std::cout << "Got lines" << std::endl;
     std::vector<PointPtr> inputPoints;
     CLData->numberOfInputPoints = inputLines.size();
     std::cout << "Getting points" << std::endl;
@@ -34,15 +33,17 @@ int main(int argc, char **argv)
     std::cout << "Dimension:" << CLData->dimension << std::endl;
 
     // Calculate vector of centroid points (1 for each cluster)
-    std::cout << "Calculating centroid points..." << std::endl;
+    std::cout << "Calculating centroid points..." << CLData->number_of_clusters << std::endl;
     std::vector<PointPtr> centroidPoints;
     centroidPoints.resize(CLData->number_of_clusters);
+    std::cout << "Entering loop" << std::endl;
     for (int i = 0; i < CLData->number_of_clusters; i++)
     {
         centroidPoints[i] = new PointStruct;
         centroidPoints[i]->id = "";
         centroidPoints[i]->coords.resize(CLData->dimension);
     }
+    std::cout << "Finished calculating centroid points..." << std::endl;
 
     std::vector<PointPtr> tempCentroidPoints = k_means(inputPoints, CLData->number_of_clusters, CLData->dimension);
     // Translate actual points that k_means returned to virtual centroid points

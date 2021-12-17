@@ -83,7 +83,7 @@ PointPtr findMean(treeNodePtr treeNode);
 void fillTree(treeNodePtr treeNode,
               std::vector<PointPtr> c_points,
               std::vector<int> *inp);
-int getInputData(int argc, char **argv, clusterInputData *CLData);
+int getCLInputData(int argc, char **argv, clusterInputData *CLData);
 int execCluster(clusterInputData *CLData,
                 std::vector<Cluster> *clusters,
                 std::vector<PointPtr> *inputPoints,
