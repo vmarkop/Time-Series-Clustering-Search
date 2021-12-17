@@ -414,7 +414,7 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
         if (std::string(argv[i]) == "-i")
         {
             CLData->inputFileName = std::string(argv[i + 1]);
-            std::cout << CLData->inputFileName << std::endl;
+            std::cout << "inputFileName: " << CLData->inputFileName << std::endl;
             found.push_back("inputFile");
         }
         else if (std::string(argv[i]) == "-c")
@@ -583,6 +583,8 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
         }
     }
     configFile.close();
+
+    std::cout << "Config file parsed" << std::endl;
 
     found.push_back(" ");
 

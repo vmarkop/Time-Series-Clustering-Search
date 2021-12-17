@@ -23,11 +23,12 @@ int main(int argc, char **argv)
     if ((error = getInputData(argc, argv, CLData)) > 0)
         return error;
 
+    std::cout << "Getting lines from " << CLData->inputFileName << std::endl;
     std::vector<std::string> inputLines = get_lines(CLData->inputFileName);
-
+    std::cout << "Got lines" << std::endl;
     std::vector<PointPtr> inputPoints;
-
     CLData->numberOfInputPoints = inputLines.size();
+    std::cout << "Getting points" << std::endl;
     CLData->dimension = get_points(inputLines, &inputPoints);
 
     std::cout << "Dimension:" << CLData->dimension << std::endl;
