@@ -16,7 +16,7 @@ INCFRED=./lib/Fred/include
 
 INCPY=./lib/pybind
 
-CCFLAGS = -lm -g -O2
+CCFLAGS = -lm -g -O3
 
 all: search lsh.out cube.out cluster.out  
 

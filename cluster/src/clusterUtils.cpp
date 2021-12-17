@@ -305,6 +305,13 @@ double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *
 
 double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *newCentroids, int dimension)
 {
+    if (newCentroids == NULL)
+        newCentroids = new std::vector<PointPtr>;
+    else
+        newCentroids->clear();
+
+    newCentroids->resize(clusters->size());
+
     std::vector<treeNodePtr> trees;
     trees.resize(clusters->size());
     std::vector<int> inputed;
@@ -323,10 +330,11 @@ double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Clust
 
 PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
 {
-    std::vector<std::vector<double>> _c;
-    double dis = DFDistance(curve1, curve2, curve1->coords.size(), &_c);
+    std::vector<std::vector<double>> *_c = new std::vector<std::vector<double>>;
+
+    double dis = DFDistance(curve1, curve2, curve1->coords.size(), _c);
     std::vector<std::vector<int>> traversal;
-    computeOptimalTraversal(&_c, &traversal, curve1->coords.size() / 2);
+    computeOptimalTraversal(_c, &traversal, curve1->coords.size() / 2);
     PointPtr retPoint = new PointStruct;
     for (int i = 0; i < curve1->coords.size() / 2; i++)
     {
@@ -335,6 +343,8 @@ PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
         retPoint->coords.push_back(ii);
         retPoint->coords.push_back(jj);
     }
+    if (_c != NULL)
+        delete _c;
     return retPoint;
 }
 
@@ -375,7 +385,8 @@ PointPtr findMean(treeNodePtr treeNode)
         return treeNode->curve;
     PointPtr meanLeft = findMean(treeNode->leftChld);
     PointPtr meanRight = findMean(treeNode->rightChld);
-    PointPtr mean = computeMeanCurve(treeNode->leftChld->curve, treeNode->rightChld->curve);
+    PointPtr mean = computeMeanCurve(meanLeft, meanRight);
+    delete meanRight, meanLeft;
     return mean;
 }
 
@@ -740,13 +751,14 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
     }
     else if (CLData->method == FRECHET_D_METHOD)
     {
-        if (CLData->update == UPDATE_VECTOR)
+        if (CLData->update == UPDATE_FRECHET)
         {
 
             FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
-
+            std::cout << "hhhhhhhhhhhhhhhhhhgh" << std::endl;
             for (int i = 0; i < CLData->numberOfInputPoints; i++)
                 HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints))[i]);
+            std::cout << "hhhhhhhhhhhhhhhhhhgh" << std::endl;
             double change = INT32_MAX * 1.0;
             int count = 0;
             while (change >= TOL && count < 30)
@@ -763,13 +775,16 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                 }
                 else
                     flag = true;
+                std::cout << "poromporompom perom perom" << std::endl;
                 for (int c = 0; c < CLData->number_of_clusters; c++)
                 {
                     (*clusters)[c].points.clear();
                     (*clusters)[c].size = 0;
                 }
                 frechet_method(&HashTablesObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
+                std::cout << "poromporompom perom perom1" << std::endl;
                 change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
+                std::cout << "poromporom pom pom" << std::endl;
 
                 std::cout << "Change " << change << "," << count << std::endl;
                 int totalPoints = 0;

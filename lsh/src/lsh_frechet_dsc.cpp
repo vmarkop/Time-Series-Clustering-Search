@@ -218,7 +218,14 @@ std::vector<PointPtr> FrechetDiscreteHashTables::range_search(PointPtr queryPoin
 
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
-        int queryID = this->FrDscHashFunc(queryPoint, i);
+        PointPtr concated_point = concat_point(queryPoint, this->dim);
+        crv _curve, snapped_curve;
+        pointToCurve(concated_point, &_curve, this->dim);
+        snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
+        remove_dup_points(&snapped_curve, this->dim);
+        pad_curve_new(&snapped_curve, this->dim);
+        curveToPoint(concated_point, &snapped_curve, this->dim);
+        int queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
@@ -228,7 +235,7 @@ std::vector<PointPtr> FrechetDiscreteHashTables::range_search(PointPtr queryPoin
             {
 
                 currNeighbour->point = this->hash_tables[i][g].points[j];
-                currNeighbour->dist = DFDistance(queryPoint, currNeighbour->point, this->dim);
+                currNeighbour->dist = DFDistance(queryPoint, currNeighbour->point, this->dim * 2);
 
                 if (currNeighbour->dist < range)
                 {

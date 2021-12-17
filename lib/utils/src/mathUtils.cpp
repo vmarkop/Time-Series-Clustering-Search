@@ -53,6 +53,8 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
 {
     if (_c == NULL)
         _c = new std::vector<std::vector<double>>;
+    else
+        _c->clear();
     std::vector<PointPtr> p_points, q_points;
     p_points.resize(dimension / 2);
     q_points.resize(dimension / 2);
@@ -70,7 +72,6 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
         q_points[i]->coords[0] = q->coords[i * 2];
         q_points[i]->coords[1] = q->coords[(i * 2) + 1];
     }
-
     // Initializing _c dimention
     _c->resize(dimension / 2);
     for (int i = 0; i < dimension / 2; i++)
@@ -85,10 +86,11 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
             if (i == 0 && j > 0)
             {
                 // Creating row
-                if ((*_c)[0][j - 1] > euclideanDistance(p_points[0], q_points[j], 2))
+                double dist = euclideanDistance(p_points[0], q_points[j], 2);
+                if ((*_c)[0][j - 1] > dist)
                     (*_c)[0][j] = (*_c)[0][j - 1];
                 else
-                    (*_c)[0][j] = euclideanDistance(p_points[0], q_points[j], 2);
+                    (*_c)[0][j] = dist;
 
                 // Creating column
                 if (i != j)
@@ -96,11 +98,11 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
                     int temp = i;
                     i = j;
                     j = temp;
-
-                    if ((*_c)[i - 1][0] > euclideanDistance(p_points[i], q_points[0], 2))
+                    dist = euclideanDistance(p_points[i], q_points[0], 2);
+                    if ((*_c)[i - 1][0] > dist)
                         (*_c)[i][0] = (*_c)[i - 1][0];
                     else
-                        (*_c)[i][0] = euclideanDistance(p_points[i], q_points[0], 2);
+                        (*_c)[i][0] = dist;
                     temp = i;
                     i = j;
                     j = temp;
@@ -110,11 +112,11 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
             {
                 // Creating row
                 double min_c = min((*_c)[i][j - 1], (*_c)[i - 1][j], (*_c)[i - 1][j - 1]);
-                if (min_c > euclideanDistance(p_points[i], q_points[j], 2))
+                double dist = euclideanDistance(p_points[i], q_points[j], 2);
+                if (min_c > dist)
                     (*_c)[i][j] = min_c;
                 else
-                    (*_c)[i][j] = euclideanDistance(p_points[i], q_points[j], 2);
-
+                    (*_c)[i][j] = dist;
                 // Creating column
                 if (i != j)
                 {
@@ -122,10 +124,11 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
                     i = j;
                     j = temp;
                     min_c = min((*_c)[i][j - 1], (*_c)[i - 1][j], (*_c)[i - 1][j - 1]);
-                    if (min_c > euclideanDistance(p_points[i], q_points[j], 2))
+                    dist = euclideanDistance(p_points[i], q_points[j], 2);
+                    if (min_c > dist)
                         (*_c)[i][j] = min_c;
                     else
-                        (*_c)[i][j] = euclideanDistance(p_points[i], q_points[j], 2);
+                        (*_c)[i][j] = dist;
                     temp = i;
                     i = j;
                     j = temp;
