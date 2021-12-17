@@ -33,27 +33,38 @@ int main(int argc, char **argv)
     std::cout << "Dimension:" << CLData->dimension << std::endl;
 
     // Calculate vector of centroid points (1 for each cluster)
-    std::cout << "Calculating centroid points..." << CLData->number_of_clusters << std::endl;
+    std::cout << "Initialization..." << std::endl;
     std::vector<PointPtr> centroidPoints;
     centroidPoints.resize(CLData->number_of_clusters);
-    std::cout << "Entering loop" << std::endl;
     for (int i = 0; i < CLData->number_of_clusters; i++)
     {
         centroidPoints[i] = new PointStruct;
         centroidPoints[i]->id = "";
         centroidPoints[i]->coords.resize(CLData->dimension);
     }
-    std::cout << "Finished calculating centroid points..." << std::endl;
 
     std::vector<PointPtr> tempCentroidPoints = k_means(inputPoints, CLData->number_of_clusters, CLData->dimension);
     // Translate actual points that k_means returned to virtual centroid points
     for (int i = 0; i < CLData->number_of_clusters; i++)
     {
-        for (int j = 0; j < CLData->dimension; j++)
-            centroidPoints[i]->coords[j] = tempCentroidPoints[i]->coords[j];
+        if (CLData->update = UPDATE_FRECHET) // turn centroid points into 2d points
+        {
+            PointPtr concated_point = concat_point(tempCentroidPoints[i], CLData->dimension);
+            std::vector<PointPtr> _curve, snapped_curve;
+            pointToCurve(concated_point, &_curve, CLData->dimension);
+            snap_curve(&snapped_curve, &_curve, DELTA, 0, CLData->dimension);
+            remove_dup_points(&snapped_curve, CLData->dimension);
+            pad_curve_new(&snapped_curve, CLData->dimension);
+            curveToPoint(concated_point, &snapped_curve, CLData->dimension);
+            centroidPoints[i] = concated_point;
+        }
+        else
+        {
+            for (int j = 0; j < CLData->dimension; j++)
+                centroidPoints[i]->coords[j] = tempCentroidPoints[i]->coords[j];
+        }
     }
     tempCentroidPoints.clear();
-
     std::vector<Cluster> clusters;
     clusters.resize(CLData->number_of_clusters);
     for (int i = 0; i < CLData->number_of_clusters; i++)
@@ -61,7 +72,6 @@ int main(int argc, char **argv)
         clusters[i].centroidPoint = centroidPoints[i];
         clusters[i].size = 0;
     }
-
     std::cout << "Assigning points to clusters..." << std::endl;
 
     auto cluster_start = std::chrono::high_resolution_clock::now();

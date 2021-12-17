@@ -14,7 +14,7 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
     foundPointIDsPerCluster.resize(CLData->number_of_clusters);
 
     int inputPointsSize = inputPoints->size();
-    double currRadius = minDistBetweenCentroids(centroids, CLData->number_of_clusters, CLData->dimension) / 2;
+    double currRadius = minFrDistBetweenCentroids(centroids, CLData->number_of_clusters, CLData->dimension) / 2;
     std::vector<std::vector<PointPtr>> clusterPoints;
     std::vector<PointPtr> duplicates;
     clusterPoints.resize(CLData->number_of_clusters);
@@ -145,6 +145,23 @@ double minDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfC
         for (int j = 0; j < i; j++)
         {
             currDist = euclideanDistance((*centroidPoints)[i], (*centroidPoints)[j], dimension);
+            if (currDist < minDist)
+                minDist = currDist;
+        }
+    }
+    return minDist;
+}
+
+double minFrDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension)
+{
+    double minDist = INT_MAX;
+    double currDist = 0.0;
+
+    for (int i = 0; i < numOfCentroids; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            currDist = DFDistance((*centroidPoints)[i], (*centroidPoints)[j], dimension);
             if (currDist < minDist)
                 minDist = currDist;
         }
@@ -753,7 +770,6 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
     {
         if (CLData->update == UPDATE_FRECHET)
         {
-
             FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
             std::cout << "hhhhhhhhhhhhhhhhhhgh" << std::endl;
             for (int i = 0; i < CLData->numberOfInputPoints; i++)

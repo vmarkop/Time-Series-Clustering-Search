@@ -99,5 +99,6 @@ void deleteData(std::vector<PointPtr> *inputPoints,
                 std::vector<PointPtr> *centroidPoints);
 
 double minDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension);
+double minFrDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension);
 
 #endif
