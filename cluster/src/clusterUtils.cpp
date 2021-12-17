@@ -435,11 +435,17 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
             std::cout << "-complete" << std::endl;
             found.push_back("complete");
         }
-        else if (std::string(argv[i]) == "-m")
+        else if (std::string(argv[i]) == "-assignment")
         {
             CLData->methodName = argv[i + 1];
             std::cout << CLData->methodName << std::endl;
-            found.push_back("m");
+            found.push_back("assignment");
+        }
+        else if (std::string(argv[i]) == "-update")
+        {
+            CLData->updateName = argv[i + 1];
+            std::cout << CLData->updateName << std::endl;
+            found.push_back("update");
         }
     }
 
@@ -460,9 +466,14 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
         std::cerr << "Output file name not given! Please try again using -o <output file>" << std::endl;
         return EXIT_FAIL_OUTPUT_ERR;
     }
-    if (std::find(found.begin(), found.end(), "m") == found.end()) // if not found inputFile
+    if (std::find(found.begin(), found.end(), "assignment") == found.end()) // if not found inputFile
     {
-        std::cerr << "Method name not given! Please try again using -m <Classic OR LSH OR Hypercube>" << std::endl;
+        std::cerr << "Assignment not given! Please try again using -assignment <Classic OR LSH OR Hypercube OR LSH_Frechet>" << std::endl;
+        return EXIT_FAIL_METHOD_ERR;
+    }
+    if (std::find(found.begin(), found.end(), "update") == found.end()) // if not found inputFile
+    {
+        std::cerr << "Update method name not given! Please try again using -update <Mean Frechet or Mean Vector>" << std::endl;
         return EXIT_FAIL_METHOD_ERR;
     }
     else
@@ -479,10 +490,23 @@ int getInputData(int argc, char **argv, clusterInputData *CLData)
         {
             CLData->method = HYPERCUBE_METHOD;
         }
+        else if (CLData->methodName == "LSH_Frechet")
+        {
+            CLData->method = FRECHET_D_METHOD;
+        }
         else
         {
-            std::cerr << "Invalid method name! Please try again using -m <Classic OR LSH OR Hypercube>" << std::endl;
+            std::cerr << "Invalid method name! Please try again using -m <Classic OR LSH OR Hypercube OR LSH_Frechet>" << std::endl;
             return EXIT_FAIL_METHOD_ERR;
+        }
+
+        if (CLData->updateName == "Mean_Frechet")
+        {
+            CLData->update = UPDATE_FRECHET;
+        }
+        else if (CLData->updateName == "Mean_Vector")
+        {
+            CLData->update = UPDATE_VECTOR;
         }
     }
     found.clear();

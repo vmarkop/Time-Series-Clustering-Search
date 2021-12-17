@@ -21,6 +21,9 @@
 #define HYPERCUBE_METHOD 2
 #define FRECHET_D_METHOD 3
 
+#define UPDATE_FRECHET 0
+#define UPDATE_VECTOR 1
+
 #define TOL (50.0)
 
 typedef struct ClusterStruct *ClusterPtr;
@@ -38,9 +41,10 @@ typedef struct ClusterDataStruct
     std::string inputFileName,
         configFileName,
         outputFileName,
-        methodName;
+        methodName,
+        updateName;
 
-    int method;
+    int method, update;
 
     bool complete;
 
