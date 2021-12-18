@@ -24,7 +24,7 @@ public:
     FrechetDiscreteHashTables(int L, int numberOfHyperplanes, int numberOfPoints, int dimension, int tableSize); // Constructor
     void FrDscInsertPoint(PointPtr point);
     int FrDscHashFunc(PointPtr point, int hashtableId);
-    // void PrintHashTables();
+    void PrintHashTables();
     kNeighboursPtr FrDsc_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours);
     std::vector<PointPtr> range_search(PointPtr queryPoint, double range, std::vector<std::string> *foundPoints = NULL);
 };

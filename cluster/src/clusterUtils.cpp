@@ -7,13 +7,14 @@
 
 void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, const std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints)
 {
+
     std::vector<PointPtr> foundPoints;
     std::vector<std::string> foundPointIDs;
     std::vector<std::vector<std::string>> foundPointIDsPerCluster;
 
     foundPointIDsPerCluster.resize(CLData->number_of_clusters);
 
-    int inputPointsSize = inputPoints->size();
+    int inputPointsSize = CLData->numberOfInputPoints;
     std::cout << "123" << std::endl;
     double currRadius = minFrDistBetweenCentroids(centroids, CLData->number_of_clusters, CLData->dimension) / 2;
     std::vector<std::vector<PointPtr>> clusterPoints;
@@ -31,9 +32,10 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
     std::cout << "InitialRadius" << initialRadius << std::endl;
     std::cout << "currNumOfFound" << currNumOfFound << std::endl;
     std::cout << "prevNumOfFound" << prevNumOfFound << std::endl;
-    // int iiiiiiiii = 0;
-    while (initialInputPoints - numOfFound >= initialInputPoints / 2 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1))
+    int iiiiiiiii = 0;
+    while (initialInputPoints - numOfFound >= initialInputPoints / 2 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1) && iiiiiiiii < 5)
     {
+        iiiiiiiii++;
         std::cout << "Hello12345" << std::endl;
         prevNumOfFound = currNumOfFound;
         currNumOfFound = 0;
@@ -366,6 +368,7 @@ PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
     std::vector<std::vector<int>> traversal;
     computeOptimalTraversal(_c, &traversal, curve1->coords.size() / 2);
     PointPtr retPoint = new PointStruct;
+    retPoint->id = "0";
     for (int i = 0; i < curve1->coords.size() / 2; i++)
     {
         double ii = (curve1->coords[traversal[i][0]] + curve2->coords[traversal[i][0]]) / 2;
@@ -784,10 +787,18 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
         if (CLData->update == UPDATE_FRECHET)
         {
             FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
+
+            std::vector<PointPtr> *inputPoints_2d = new std::vector<PointPtr>;
+            inputPoints_2d->resize(CLData->numberOfInputPoints);
+            for (int i = 0; i < CLData->numberOfInputPoints; i++)
+            {
+                (*inputPoints_2d)[i] = concat_point((*inputPoints)[i], CLData->dimension);
+            }
             std::cout << "hhhhhhhhhhhhhhhhhhgh" << std::endl;
             for (int i = 0; i < CLData->numberOfInputPoints; i++)
-                HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints))[i]);
+                HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints_2d))[i]);
             std::cout << "hhhhhhhhhhhhhhhhhhgh" << std::endl;
+            HashTablesObject.PrintHashTables();
             double change = INT32_MAX * 1.0;
             int count = 0;
             while (change >= TOL && count < 30)
@@ -810,7 +821,7 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                     (*clusters)[c].points.clear();
                     (*clusters)[c].size = 0;
                 }
-                frechet_method(&HashTablesObject, centroidPoints, clusters, inputPoints, CLData, CLData->numberOfInputPoints);
+                frechet_method(&HashTablesObject, centroidPoints, clusters, inputPoints_2d, CLData, CLData->numberOfInputPoints);
                 std::cout << "poromporompom perom perom1" << std::endl;
                 change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
                 std::cout << "poromporom pom pom" << std::endl;
@@ -823,7 +834,6 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                 }
                 std::cout << "Total points: " << totalPoints << std::endl;
                 count++;
-                return 0;
             }
         }
         else

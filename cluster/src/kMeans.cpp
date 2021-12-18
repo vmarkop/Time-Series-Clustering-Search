@@ -2,12 +2,12 @@
 
 // Input: Vector of all input Points
 // Output: Vector of k centroid points
-std::vector<PointPtr> k_means(std::vector<PointPtr> inputPoints, int numOfCentroidPoints, int dimension)
+std::vector<PointPtr> k_means(std::vector<PointPtr> inputPoints, clusterInputData *CLData) //int numOfCentroidPoints, int dimension)
 {
 
     std::vector<PointPtr> centroidPoints;
 
-    int numOfInputPoints = inputPoints.size();
+    int numOfInputPoints = CLData->numberOfInputPoints; //inputPoints.size();
 
     PointPtr currPoint;
 
@@ -17,7 +17,7 @@ std::vector<PointPtr> k_means(std::vector<PointPtr> inputPoints, int numOfCentro
     centroidPoints.push_back(currPoint);
     std::remove(inputPoints.begin(), inputPoints.end(), currPoint);
 
-    for (int t = 1; t < numOfCentroidPoints; t++)
+    for (int t = 1; t < CLData->number_of_clusters; t++)
     { // first point already chosen, so t=1
 
         std::vector<double> D;
@@ -25,7 +25,7 @@ std::vector<PointPtr> k_means(std::vector<PointPtr> inputPoints, int numOfCentro
 
         for (int i = 0; i < numOfInputPoints; i++)
         {
-            D[i] = min_dist_from_centroid(inputPoints[i], centroidPoints, dimension);
+            D[i] = min_dist_from_centroid(inputPoints[i], centroidPoints, CLData->dimension);
         }
 
         currPoint = inputPoints[choose_point(inputPoints, D, numOfInputPoints)];

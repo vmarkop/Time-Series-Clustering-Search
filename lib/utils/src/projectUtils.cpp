@@ -350,8 +350,8 @@ void pad_curve_new(crvPtr curve, int dim)
     {
         PointPtr _point = new PointStruct;
         _point->coords.resize(2);
-        _point->coords[0] = INT_MAX - 10;
-        _point->coords[1] = INT_MAX - 10;
+        _point->coords[0] = 10000;
+        _point->coords[1] = 10000;
         curve->push_back(_point);
     }
 }
@@ -390,7 +390,7 @@ void minimaximize_curve_cont(crvPtr _curve, int dimension)
     }
 }
 
-void pointToCurve(PointPtr _p, crvPtr _c, int dimension)
+void pointToCurve(const PointPtr _p, crvPtr _c, int dimension)
 {
     if (_p == NULL)
     {

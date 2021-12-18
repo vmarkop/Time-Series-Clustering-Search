@@ -49,10 +49,16 @@ int minIndx(double x1, double x2, double x3)
     return indxMin;
 }
 
-double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector<double>> *_c)
+double DFDistance(const PointPtr p, const PointPtr q, int dimension, std::vector<std::vector<double>> *_c)
 {
+    int flag = 0;
+
     if (_c == NULL)
+    {
         _c = new std::vector<std::vector<double>>;
+        flag = 1;
+    }
+
     else
         _c->clear();
     std::vector<PointPtr> p_points, q_points;
@@ -136,7 +142,10 @@ double DFDistance(PointPtr p, PointPtr q, int dimension, std::vector<std::vector
             }
         }
     }
-    return (*_c)[(dimension)-1][(dimension)-1];
+    double retValue = (*_c)[(dimension)-1][(dimension)-1];
+    if (flag)
+        delete _c;
+    return retValue;
 }
 
 double uniformDistributionGenerator(const double alpha, const double beta)
@@ -150,7 +159,7 @@ double uniformDistributionGenerator(const double alpha, const double beta)
     return distribution(generator);
 }
 
-int avoidOverFlowModulo(int a, int b, int m, char op)
+int avoidOverFlowModulo(long a, long b, long m, char op)
 {
     switch (op)
     {
@@ -169,17 +178,17 @@ int avoidOverFlowModulo(int a, int b, int m, char op)
         return euclideanModulo(euclideanModulo(a, m) / euclideanModulo(b, m), m);
     case '%':
         return euclideanModulo(euclideanModulo(a, m) % euclideanModulo(b, m), m);
-        ;
+
     default:
         std::cerr << "Wrong Operator" << std::endl;
         exit(1);
     }
 }
 
-int euclideanModulo(int x, int y)
+int euclideanModulo(long x, long y)
 {
-    int returnValue = x % y;
-    return returnValue >= 0 ? returnValue : returnValue + std::abs(y);
+    long returnValue = x % y;
+    return returnValue >= 0 ? returnValue : (returnValue + std::abs(y));
 }
 
 int powerWithBase2(int exp)

@@ -43,20 +43,20 @@ int main(int argc, char **argv)
         centroidPoints[i]->coords.resize(CLData->dimension);
     }
 
-    std::vector<PointPtr> tempCentroidPoints = k_means(inputPoints, CLData->number_of_clusters, CLData->dimension);
+    std::vector<PointPtr> tempCentroidPoints = k_means(inputPoints, CLData); //CLData->number_of_clusters, CLData->dimension);
     // Translate actual points that k_means returned to virtual centroid points
     for (int i = 0; i < CLData->number_of_clusters; i++)
     {
-        if (CLData->update = UPDATE_FRECHET) // turn centroid points into 2d points
+        std::cout << "asdasdasd" << CLData->update << std::endl;
+        if (CLData->update == UPDATE_FRECHET) // turn centroid points into 2d points
         {
             PointPtr concated_point = concat_point(tempCentroidPoints[i], CLData->dimension);
-            std::vector<PointPtr> _curve, snapped_curve;
-            pointToCurve(concated_point, &_curve, CLData->dimension);
-            snap_curve(&snapped_curve, &_curve, DELTA, 0, CLData->dimension);
-            remove_dup_points(&snapped_curve, CLData->dimension);
-            pad_curve_new(&snapped_curve, CLData->dimension);
-            curveToPoint(concated_point, &snapped_curve, CLData->dimension);
             centroidPoints[i] = concated_point;
+            for (int j = 0; j < CLData->dimension * 2; j++)
+            {
+                std::cout << " " << centroidPoints[i]->coords[j];
+            }
+            std::cout << std::endl;
         }
         else
         {
