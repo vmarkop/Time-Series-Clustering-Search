@@ -146,15 +146,15 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                     sort_neighbours(returnData, k_neighbours);
                 }
             }
-            // if (count > 20 * numOfHashTables)
-            // {
-            //     delete currNeighbour;
-            //     return returnData;
-            // }
+            if (count > 20)
+            {
+                delete currNeighbour;
+                return returnData;
+            }
         }
     }
 
-    if (count < 50)
+    if (returnData->size < k_neighbours)
     { // rerun without ID check if haven't found enough neighbors
 
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
@@ -190,11 +190,11 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                         sort_neighbours(returnData, k_neighbours);
                     }
                 }
-                // if (count > 10 * numOfHashTables)
-                // {
-                //     delete currNeighbour;
-                //     return returnData;
-                // }
+                if (count > 10 * numOfHashTables)
+                {
+                    delete currNeighbour;
+                    return returnData;
+                }
             }
         }
     }

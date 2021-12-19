@@ -112,7 +112,7 @@ int main(int argc, char **argv)
             SearchData->dimension = get_points(inputLines, &inputPoints);
             int numOfInputPoints = inputPoints.size();
 
-            HChashTable HypercubeObject(SearchData->dimension, SearchData->numberOfHyperplanes , SearchData->probes, SearchData->intM);
+            HChashTable HypercubeObject(SearchData->dimension, SearchData->numberOfHyperplanes, SearchData->probes, SearchData->intM);
             // Inserting points to hash table
             std::cout << "Inserting items to hash table..." << std::endl;
             for (int i = 0; i < inputPoints.size(); i++)
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
                 std::cout << "Dimension: " << SearchData->dimension << std::endl;
 
                 // Create HashTablesObject that stores curves, projected to vectors of size 2*dim
-                FrechetDiscreteHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 8);
+                FrechetDiscreteHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
                 std::vector<PointPtr> *inputPoints_2d = new std::vector<PointPtr>;
@@ -203,9 +203,10 @@ int main(int argc, char **argv)
                     std::cout << inputPoints[i]->coords.size() << std::endl;
                     HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint((*inputPoints_2d)[i]);
                 }
+                HashTablesObject.PrintHashTables();
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
-                std::vector<std::string> queryLines = get_lines(SearchData->queryFileName); 
+                std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
                 // Getting curves from query lines
                 std::vector<PointPtr> queryCurves;
                 std::cout << "get_curves got " << get_curves(queryLines, &queryCurves) << std::endl;
