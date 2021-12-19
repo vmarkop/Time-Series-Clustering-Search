@@ -32,11 +32,9 @@ int lloyd_method_DFD(std::vector<PointPtr> *centroidPoints, PointPtr point, int 
     double cur_dist = 0;
     int index = 0;
 
-    std::cout << "centroidPoints->size(): " << centroidPoints->size() << std::endl;
     for (int i = 0; i < centroidPoints->size(); i++)
     {
         cur_dist = DFDistance(point, (*centroidPoints)[i], dimension);
-        std::cout << "Distance " << i << ": " << cur_dist << std::endl;
         if (cur_dist < min_dist)
         {
             min_dist = cur_dist;
@@ -71,7 +69,9 @@ void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, 
         currNumOfFound = 0;
         for (int c = 0; c < CLData->number_of_clusters; c++)
         {
+            std::cout << "";
             clusterPoints[c] = HashTablesObject->range_search((*centroids)[c], currRadius, &(foundPointIDsPerCluster[c]));
+            std::cout << "";
         }
         std::vector<std::string> tempArray;
         for (int i = 0; i < CLData->number_of_clusters; i++)
@@ -95,6 +95,7 @@ void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, 
         duplicates = find_duplicates(clusterPoints, CLData->number_of_clusters);
         for (auto currPoint : duplicates)
         {
+            std::cout << "";
             std::vector<int> CentroidsToBeErased;
             std::vector<int> position;
             for (int c = 0; c < CLData->number_of_clusters; c++)
@@ -113,7 +114,7 @@ void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, 
             int minCentroid;
             double currDist = 0.0;
             int currCentroid;
-
+            std::cout << "";
             for (int i = 0; i < CentroidsToBeErased.size(); i++)
             {
                 currCentroid = i;

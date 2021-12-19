@@ -33,10 +33,10 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
     // std::cout << "InitialRadius" << initialRadius << std::endl;
     // std::cout << "currNumOfFound" << currNumOfFound << std::endl;
     // std::cout << "prevNumOfFound" << prevNumOfFound << std::endl;
-    int iiiiiiiii = 0;
-    while (initialInputPoints - numOfFound >= initialInputPoints / 2 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1) && iiiiiiiii < 5)
+    int loopCounter = 0;
+    while (initialInputPoints - numOfFound >= initialInputPoints / 2 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1) && loopCounter < 5)
     {
-        iiiiiiiii++;
+        loopCounter++;
         prevNumOfFound = currNumOfFound;
         currNumOfFound = 0;
         for (int c = 0; c < CLData->number_of_clusters; c++)
@@ -627,7 +627,6 @@ int getCLInputData(int argc, char **argv, clusterInputData *CLData)
 
     for (std::string line : conflines)
     {
-        std::cout << "integer line:" << line << std::endl;
         line.push_back('\n');
         std::string word = "";
         std::string parameter = "";
@@ -644,7 +643,6 @@ int getCLInputData(int argc, char **argv, clusterInputData *CLData)
                 }
                 else if (value == -1)
                 {
-                    std::cout << "integer" << std::endl;
                     if (!is_number(word))
                     {
                         std::cerr << "Parameter [" << parameter << "]: Value '" << word << "' is not an integer" << std::endl;
@@ -707,7 +705,6 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
 {
     std::vector<PointPtr> tempCentroidPoints;
     bool flag = false;
-    std::cout << "method: " << CLData->method << "update: " << CLData->update << std::endl;
     if (CLData->method == CLASSIC_METHOD)
     {
         if (CLData->update == UPDATE_VECTOR)
@@ -899,7 +896,6 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
 
             for (int i = 0; i < CLData->numberOfInputPoints; i++)
                 HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints_2d))[i]);
-            HashTablesObject.PrintHashTables();
             double change = INT32_MAX * 1.0;
             int count = 0;
             while (change >= 1 && count < 10)

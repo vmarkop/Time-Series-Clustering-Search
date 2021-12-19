@@ -203,7 +203,6 @@ int main(int argc, char **argv)
                     std::cout << inputPoints[i]->coords.size() << std::endl;
                     HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint((*inputPoints_2d)[i]);
                 }
-                HashTablesObject.PrintHashTables();
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
                 std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
