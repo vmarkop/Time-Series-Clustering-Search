@@ -72,7 +72,6 @@ void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, 
         for (int c = 0; c < CLData->number_of_clusters; c++)
         {
             clusterPoints[c] = HashTablesObject->range_search((*centroids)[c], currRadius, &(foundPointIDsPerCluster[c]));
-            // std::cout << "ClP[c] = " << clusterPoints[c].size() << std::endl;
         }
         std::vector<std::string> tempArray;
         for (int i = 0; i < CLData->number_of_clusters; i++)

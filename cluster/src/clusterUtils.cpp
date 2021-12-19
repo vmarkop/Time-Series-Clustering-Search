@@ -805,7 +805,7 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                 HashTablesObject.HashTables::InsertPoint(((*inputPoints))[i]);
             double change = INT32_MAX * 1.0;
             int count = 0;
-            while (change >= TOL && count < 30)
+            while (change >= TOL && count < 10)
             {
                 if (flag)
                 {
