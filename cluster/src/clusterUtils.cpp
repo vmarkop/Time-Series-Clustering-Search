@@ -1,9 +1,12 @@
 #include <fstream>
 #include <algorithm>
+#include <ctime>
 
 #include "clusterUtils.h"
 #include "lsh_frechet_dsc.h"
 #include "methods.h"
+
+int counter = 0;
 
 void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, const std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints)
 {
@@ -379,41 +382,36 @@ double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Clust
     double changes = 0;
     for (int i = 0; i < clusters->size(); i++)
     {
-        // std::cout << i << " ////////////////////////// " << i << std::endl;
-
-        // for (auto iii : (*clusters)[i].points)
-        // {
-        //     std::cout << "clusterpoint id: " << iii->id << std::endl;
-        // }
-        // std::cout << std::endl;
-        // std::cout << i << " ////////////////////////// " << i << std::endl;
-        // create hard copy of cluster points
-        std::vector<PointPtr> safeClusterPoints;
-        safeClusterPoints.resize((*clusters)[i].points.size());
-        for (int j = 0; j < (*clusters)[i].points.size(); j++)
+        if ((*clusters)[i].points.size() != 0)
         {
-            safeClusterPoints[j] = new PointStruct;
-            safeClusterPoints[j]->coords.resize(dimension * 2);
-            // std::cout << "Points dim: " << (*clusters)[i].points[j]->coords.size() << std::endl;
-            safeClusterPoints[j]->id = (*clusters)[i].points[j]->id;
-            for (int k = 0; k < dimension; k++)
-                safeClusterPoints[j]->coords[k] = (*clusters)[i].points[j]->coords[k];
+            std::vector<PointPtr> safeClusterPoints;
+            safeClusterPoints.resize((*clusters)[i].points.size());
+            for (int j = 0; j < (*clusters)[i].points.size(); j++)
+            {
+                safeClusterPoints[j] = new PointStruct;
+                safeClusterPoints[j]->coords.resize(dimension * 2);
+                safeClusterPoints[j]->id = (*clusters)[i].points[j]->id;
+                for (int k = 0; k < dimension * 2; k++)
+                    safeClusterPoints[j]->coords[k] = (*clusters)[i].points[j]->coords[k];
+            }
+            std::cout << "auygsdf" << safeClusterPoints.size() << std::endl;
+            int height = ceil(log2(safeClusterPoints.size()));
+            trees[i] = buildTree(height);
+            fillTree(trees[i], safeClusterPoints, &inputed);
+            counter = 0;
+            inputed.clear();
+            (*newCentroids)[i] = findMean(trees[i]);
+            changes += DFDistance((*centroids)[i], (*newCentroids)[i], dimension);
         }
-
-        trees[i] = buildTree(floor(log2(safeClusterPoints.size())));
-        fillTree(trees[i], safeClusterPoints, &inputed);
-        // trees[i] = buildTree(floor(log2((*clusters)[i].points.size())));
-        // fillTree(trees[i], (*clusters)[i].points, &inputed);
-        inputed.clear();
-        (*newCentroids)[i] = findMean(trees[i]);
-        changes += DFDistance((*centroids)[i], (*newCentroids)[i], dimension);
-        // for (int j = 0; j < (*clusters)[i].points.size(); j++)
-        // {
-        //     std::cout << "Points dim: " << (*clusters)[i].points[j]->coords.size() << std::endl;
-        //     // usterPoints[j]->cosafeClusterPoints[j]->id = (*clusters)[i].points[j]->id;
-        //     // for (int k = 0; k < dimension; k++)
-        //     //     safeClords[k] = (*clusters)[i].points[j]->coords[k];
-        // }
+        else
+        {
+            (*newCentroids)[i] = new PointStruct;
+            (*newCentroids)[i]->id = (*centroids)[i]->id;
+            for (int jj = 0; jj < dimension * 2; jj++)
+            {
+                (*newCentroids)[i]->coords.push_back((*centroids)[i]->coords[jj]);
+            }
+        }
     }
 
     return changes;
@@ -421,6 +419,10 @@ double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Clust
 
 PointPtr computeMeanCurve(PointPtr curve1, PointPtr curve2)
 {
+    if (curve2 == NULL)
+    {
+        return curve1;
+    }
     std::vector<std::vector<double>> *_c = new std::vector<std::vector<double>>;
 
     double dis = DFDistance(curve1, curve2, curve1->coords.size() / 2, _c);
@@ -454,16 +456,22 @@ void computeOptimalTraversal(std::vector<std::vector<double>> *_c, std::vector<s
 
         if (minIdx == 0)
         {
+            element.clear();
+            element.resize(2);
             element[0] = --index_p, element[1] = index_q;
             traversal->push_back(element);
         }
         else if (minIdx == 0)
         {
+            element.clear();
+            element.resize(2);
             element[0] = index_p, element[1] = --index_q;
             traversal->push_back(element);
         }
         else
         {
+            element.clear();
+            element.resize(2);
             element[0] = --index_p, element[1] = --index_q;
             traversal->push_back(element);
         }
@@ -473,26 +481,32 @@ void computeOptimalTraversal(std::vector<std::vector<double>> *_c, std::vector<s
 
 PointPtr findMean(treeNodePtr treeNode)
 {
-    if (treeNode->curve != NULL)
+    PointPtr meanLeft, meanRight;
+    if (treeNode->leftChld == NULL && treeNode->rightChld == NULL)
+    {
         return treeNode->curve;
-    PointPtr meanLeft = findMean(treeNode->leftChld);
-    PointPtr meanRight = findMean(treeNode->rightChld);
-    PointPtr mean = computeMeanCurve(meanLeft, meanRight);
-    delete meanRight, meanLeft;
-    return mean;
+    }
+    else
+    {
+        PointPtr meanLeft = findMean(treeNode->leftChld);
+        if (treeNode->rightChld != NULL)
+            PointPtr meanRight = findMean(treeNode->rightChld);
+        else
+            PointPtr meanRight = NULL;
+        PointPtr mean = computeMeanCurve(meanLeft, meanRight);
+        return mean;
+    }
 }
 
 void fillTree(treeNodePtr treeNode, std::vector<PointPtr> c_points, std::vector<int> *inp)
 {
+    if (treeNode == NULL)
+    {
+        return;
+    }
     if (treeNode->leftChld == NULL && treeNode->rightChld == NULL)
     {
-        int index;
-        do
-            index = (int)ceil(rand() % c_points.size());
-        while (std::find(inp->begin(), inp->end(), index) != inp->end());
-
-        treeNode->curve = c_points[index];
-        inp->push_back(index);
+        treeNode->curve = c_points[counter++];
     }
     else
     {
@@ -702,6 +716,7 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
 {
     std::vector<PointPtr> tempCentroidPoints;
     bool flag = false;
+    std::cout << "method: " << CLData->method << "update: " << CLData->update << std::endl;
     if (CLData->method == CLASSIC_METHOD)
     {
         if (CLData->update == UPDATE_VECTOR)
@@ -750,8 +765,9 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
         {
             double change = INT32_MAX * 1.0;
             int count = 0;
-            while (change >= TOL / 1000 && count < 50)
+            while (change >= 1 && count < 10)
             {
+                std::cout << "frefre88" << std::endl;
                 if (flag)
                 {
                     for (int i = 0; i < CLData->number_of_clusters; i++)
@@ -772,7 +788,7 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                 int index = 0;
                 for (int i = 0; i < CLData->numberOfInputPoints; i++)
                 {
-                    index = lloyd_method(centroidPoints, (*inputPoints_2d)[i], CLData->dimension);
+                    index = lloyd_method_DFD(centroidPoints, (*inputPoints_2d)[i], CLData->dimension);
                     (*clusters)[index].points.push_back((*inputPoints_2d)[i]);
                     (*clusters)[index].size++;
                 }
@@ -896,7 +912,7 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
             HashTablesObject.PrintHashTables();
             double change = INT32_MAX * 1.0;
             int count = 0;
-            while (change >= TOL && count < 10)
+            while (change >= 1 && count < 10)
             {
                 if (flag)
                 {

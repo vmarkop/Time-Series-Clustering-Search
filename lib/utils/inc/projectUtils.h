@@ -101,6 +101,6 @@ void curveToPoint(PointPtr _p, crvPtr _c, int dimension);
 
 void deleteCrv(crvPtr _curve);
 
-treeNodePtr buildTree(double height);
+treeNodePtr buildTree(int height);
 
 #endif

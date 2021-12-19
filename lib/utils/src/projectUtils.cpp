@@ -473,9 +473,9 @@ void deleteCrv(crvPtr _curve)
     }
 }
 
-treeNodePtr buildTree(double height)
+treeNodePtr buildTree(int height)
 {
-    if (height == 0)
+    if (height <= 0)
     {
         return NULL;
     }

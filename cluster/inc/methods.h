@@ -13,6 +13,7 @@ typedef struct duplStruct
 } duplicatePoint;
 
 int lloyd_method(std::vector<PointPtr> *centroidPoints, PointPtr point, int dimension);
+int lloyd_method_DFD(std::vector<PointPtr> *centroidPoints, PointPtr point, int dimension);
 void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, const std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints);
 void hyperCube_method(HChashTable *HypercubeObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints);
 std::vector<PointPtr> find_duplicates(std::vector<std::vector<PointPtr>> clusterPoints, int numOfClusters);

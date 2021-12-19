@@ -26,6 +26,26 @@ int lloyd_method(std::vector<PointPtr> *centroidPoints, PointPtr point, int dime
     return index;
 }
 
+int lloyd_method_DFD(std::vector<PointPtr> *centroidPoints, PointPtr point, int dimension)
+{
+    double min_dist = INT32_MAX;
+    double cur_dist = 0;
+    int index = 0;
+
+    std::cout << "centroidPoints->size(): " << centroidPoints->size() << std::endl;
+    for (int i = 0; i < centroidPoints->size(); i++)
+    {
+        cur_dist = DFDistance(point, (*centroidPoints)[i], dimension);
+        std::cout << "Distance " << i << ": " << cur_dist << std::endl;
+        if (cur_dist < min_dist)
+        {
+            min_dist = cur_dist;
+            index = i;
+        }
+    }
+    return index;
+}
+
 void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, const std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints)
 {
     std::vector<PointPtr> foundPoints;

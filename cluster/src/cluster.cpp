@@ -76,6 +76,7 @@ int main(int argc, char **argv)
     }
 
     auto cluster_start = std::chrono::high_resolution_clock::now();
+    std::cout << "Assigning points to clusters...done" << std::endl;
     if (execCluster(CLData, &clusters, &inputPoints, inputPoints_2d, &centroidPoints) == EXIT_FAILURE)
     {
         return EXIT_FAILURE;
