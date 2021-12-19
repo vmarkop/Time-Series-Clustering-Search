@@ -164,29 +164,30 @@ kNeighboursPtr HChashTable::find_k_nearest_neighbours(PointPtr queryPoint, int k
         currBucket = bucketsToCheck->back();
         bucketsToCheck->pop_back();
         // Checks currBucket
-        for (int k = 0; k < this->Table[currBucket]->points.size() && pointsChecked < this->maxcandidatesPoints; k++)
+        if (this->Table[currBucket] != NULL)
         {
-
-            if (notAlreadyExists(returnData, this->Table[currBucket]->points[k]->id))
+            for (int k = 0; k < this->Table[currBucket]->points.size() && pointsChecked < this->maxcandidatesPoints; k++)
             {
-                currNeighbour->point = this->Table[currBucket]->points[k];
-                currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, this->dimension);
-
-                if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
+                if (notAlreadyExists(returnData, this->Table[currBucket]->points[k]->id))
                 {
+                    currNeighbour->point = this->Table[currBucket]->points[k];
+                    currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, this->dimension);
 
-                    if (returnData->size < k_neighbours)
-                        returnData->size++;
-                    returnData->neighbours[k_neighbours - 1]->point = currNeighbour->point;
-                    returnData->neighbours[k_neighbours - 1]->dist = currNeighbour->dist;
+                    if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
+                    {
+                        if (returnData->size < k_neighbours)
+                            returnData->size++;
+                        returnData->neighbours[k_neighbours - 1]->point = currNeighbour->point;
+                        returnData->neighbours[k_neighbours - 1]->dist = currNeighbour->dist;
 
-                    count++;
-                    pointsChecked++;
-                    sort_neighbours(returnData, k_neighbours);
+                        count++;
+                        pointsChecked++;
+                        sort_neighbours(returnData, k_neighbours);
+                    }
                 }
             }
+            probesChecked++;
         }
-        probesChecked++;
     }
 
     if (bucketsToCheck != NULL)
