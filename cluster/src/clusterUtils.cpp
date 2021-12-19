@@ -15,35 +15,35 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
     foundPointIDsPerCluster.resize(CLData->number_of_clusters);
 
     int inputPointsSize = CLData->numberOfInputPoints;
-    std::cout << "123" << std::endl;
+    // std::cout << "123" << std::endl;
     double currRadius = minFrDistBetweenCentroids(centroids, CLData->number_of_clusters, CLData->dimension) / 2;
     std::vector<std::vector<PointPtr>> clusterPoints;
     std::vector<PointPtr> duplicates;
     clusterPoints.resize(CLData->number_of_clusters);
-    std::cout << "Hewtrgvs0" << std::endl;
+    // std::cout << "Hewtrgvs0" << std::endl;
     int initialInputPoints = inputPointsSize;
     double initialRadius = currRadius;
     int prevNumOfFound = 0;
     int currNumOfFound = 0;
     int numOfFound = 0;
-    std::cout << "initialInput points" << initialInputPoints << std::endl;
-    std::cout << "numOfFound" << numOfFound << std::endl;
-    std::cout << "currad" << currRadius << std::endl;
-    std::cout << "InitialRadius" << initialRadius << std::endl;
-    std::cout << "currNumOfFound" << currNumOfFound << std::endl;
-    std::cout << "prevNumOfFound" << prevNumOfFound << std::endl;
+    // std::cout << "initialInput points" << initialInputPoints << std::endl;
+    // std::cout << "numOfFound" << numOfFound << std::endl;
+    // std::cout << "currad" << currRadius << std::endl;
+    // std::cout << "InitialRadius" << initialRadius << std::endl;
+    // std::cout << "currNumOfFound" << currNumOfFound << std::endl;
+    // std::cout << "prevNumOfFound" << prevNumOfFound << std::endl;
     int iiiiiiiii = 0;
     while (initialInputPoints - numOfFound >= initialInputPoints / 2 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1) && iiiiiiiii < 5)
     {
         iiiiiiiii++;
-        std::cout << "Hello12345" << std::endl;
+        // std::cout << "Hello12345" << std::endl;
         prevNumOfFound = currNumOfFound;
         currNumOfFound = 0;
         for (int c = 0; c < CLData->number_of_clusters; c++)
         {
-            std::cout << "Hello0" << std::endl;
+            // std::cout << "Hello0" << std::endl;
             clusterPoints[c] = HashTablesObject->range_search((*centroids)[c], currRadius, &(foundPointIDsPerCluster[c]));
-            std::cout << "Hello01" << std::endl;
+            // std::cout << "Hello01" << std::endl;
             // std::cout << "ClP[c] = " << clusterPoints[c].size() << std::endl;
         }
         std::vector<std::string> tempArray;
@@ -225,8 +225,11 @@ std::vector<PointPtr> find_duplicates(std::vector<std::vector<PointPtr>> cluster
     return duplPoints;
 }
 
-double silhouette_calculator(PointPtr point, std::vector<Cluster> *clusters, int dimension)
+double silhouette_calculator(PointPtr point, std::vector<Cluster> *clusters, int dimension, int method)
 {
+
+    if (method == UPDATE_FRECHET)
+        return silhouette_calculator_frechet(point, clusters, dimension);
 
     // find 2 closest (*clusters)
     std::vector<int> closestClusters = get_2_closest_clusters(point, clusters, dimension);
@@ -252,7 +255,32 @@ double silhouette_calculator(PointPtr point, std::vector<Cluster> *clusters, int
     return (b - a) / (std::max(a, b));
 }
 
-std::vector<int> get_2_closest_clusters(PointPtr point, std::vector<Cluster> *clusters, int dimension)
+double silhouette_calculator_frechet(PointPtr point, std::vector<Cluster> *clusters, int dimension)
+{
+    // find 2 closest (*clusters)
+    std::vector<int> closestClusters = get_2_closest_clusters(point, clusters, dimension, 0);
+    // find ai
+    ClusterPtr cluster = &((*clusters)[closestClusters[0]]);
+    double distanceSum = 0;
+    for (int i = 0; i < cluster->size; i++)
+    {
+        distanceSum += DFDistance(point, cluster->points[i], dimension);
+    }
+    double a = distanceSum / (cluster->size * 1.0); // -1 beacause point belongs in cluster
+
+    // find bi
+    cluster = &((*clusters)[closestClusters[1]]);
+    distanceSum = 0;
+    for (int i = 0; i < cluster->size; i++)
+    {
+        distanceSum += DFDistance(point, cluster->points[i], dimension);
+    }
+    double b = distanceSum / (cluster->size * 1.0); // -1 beacause point belongs in cluster
+
+    return (b - a) / (std::max(a, b));
+}
+
+std::vector<int> get_2_closest_clusters(PointPtr point, std::vector<Cluster> *clusters, int dimension, int useEuclDist)
 {
 
     std::vector<int> closestClusters;
@@ -267,18 +295,19 @@ std::vector<int> get_2_closest_clusters(PointPtr point, std::vector<Cluster> *cl
 
     double min_dist = INT32_MAX;
     double cur_dist = 0.0;
-
     // get all centroid points ( we could add this as a parameter)
-    std::vector<PointPtr>(*centroidPoints);
+    std::vector<PointPtr> centroidPoints;
     for (int i = 0; i < (*clusters).size(); i++)
     {
-        (*centroidPoints).push_back((*clusters)[i].centroidPoint);
+        centroidPoints.push_back((*clusters)[i].centroidPoint);
     }
 
-    for (int i = 0; i < (*centroidPoints).size(); i++)
+    for (int i = 0; i < centroidPoints.size(); i++)
     {
-
-        cur_dist = euclideanDistance(point, (*centroidPoints)[i], dimension);
+        if (useEuclDist)
+            cur_dist = euclideanDistance(point, centroidPoints[i], dimension);
+        else
+            cur_dist = DFDistance(point, centroidPoints[i], dimension);
         if (cur_dist < closestDist[1])
         {
             closestDist[1] = cur_dist;
@@ -350,11 +379,41 @@ double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Clust
     double changes = 0;
     for (int i = 0; i < clusters->size(); i++)
     {
-        trees[i] = buildTree(floor(log2((*clusters)[i].points.size())));
-        fillTree(trees[i], (*clusters)[i].points, &inputed);
+        // std::cout << i << " ////////////////////////// " << i << std::endl;
+
+        // for (auto iii : (*clusters)[i].points)
+        // {
+        //     std::cout << "clusterpoint id: " << iii->id << std::endl;
+        // }
+        // std::cout << std::endl;
+        // std::cout << i << " ////////////////////////// " << i << std::endl;
+        // create hard copy of cluster points
+        std::vector<PointPtr> safeClusterPoints;
+        safeClusterPoints.resize((*clusters)[i].points.size());
+        for (int j = 0; j < (*clusters)[i].points.size(); j++)
+        {
+            safeClusterPoints[j] = new PointStruct;
+            safeClusterPoints[j]->coords.resize(dimension * 2);
+            // std::cout << "Points dim: " << (*clusters)[i].points[j]->coords.size() << std::endl;
+            safeClusterPoints[j]->id = (*clusters)[i].points[j]->id;
+            for (int k = 0; k < dimension; k++)
+                safeClusterPoints[j]->coords[k] = (*clusters)[i].points[j]->coords[k];
+        }
+
+        trees[i] = buildTree(floor(log2(safeClusterPoints.size())));
+        fillTree(trees[i], safeClusterPoints, &inputed);
+        // trees[i] = buildTree(floor(log2((*clusters)[i].points.size())));
+        // fillTree(trees[i], (*clusters)[i].points, &inputed);
         inputed.clear();
         (*newCentroids)[i] = findMean(trees[i]);
         changes += DFDistance((*centroids)[i], (*newCentroids)[i], dimension);
+        // for (int j = 0; j < (*clusters)[i].points.size(); j++)
+        // {
+        //     std::cout << "Points dim: " << (*clusters)[i].points[j]->coords.size() << std::endl;
+        //     // usterPoints[j]->cosafeClusterPoints[j]->id = (*clusters)[i].points[j]->id;
+        //     // for (int k = 0; k < dimension; k++)
+        //     //     safeClords[k] = (*clusters)[i].points[j]->coords[k];
+        // }
     }
 
     return changes;
@@ -639,7 +698,7 @@ int getCLInputData(int argc, char **argv, clusterInputData *CLData)
     return EXIT_SUCCESS;
 }
 
-int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::vector<PointPtr> *inputPoints, std::vector<PointPtr> *centroidPoints)
+int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::vector<PointPtr> *inputPoints, std::vector<PointPtr> *inputPoints_2d, std::vector<PointPtr> *centroidPoints)
 {
     std::vector<PointPtr> tempCentroidPoints;
     bool flag = false;
@@ -788,20 +847,12 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
         {
             FrechetDiscreteHashTables HashTablesObject(CLData->number_of_vector_hash_tables, CLData->number_of_vector_hash_functions, CLData->numberOfInputPoints, CLData->dimension, CLData->numberOfInputPoints / 8);
 
-            std::vector<PointPtr> *inputPoints_2d = new std::vector<PointPtr>;
-            inputPoints_2d->resize(CLData->numberOfInputPoints);
-            for (int i = 0; i < CLData->numberOfInputPoints; i++)
-            {
-                (*inputPoints_2d)[i] = concat_point((*inputPoints)[i], CLData->dimension);
-            }
-            std::cout << "hhhhhhhhhhhhhhhhhhgh" << std::endl;
             for (int i = 0; i < CLData->numberOfInputPoints; i++)
                 HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint(((*inputPoints_2d))[i]);
-            std::cout << "hhhhhhhhhhhhhhhhhhgh" << std::endl;
             HashTablesObject.PrintHashTables();
             double change = INT32_MAX * 1.0;
             int count = 0;
-            while (change >= TOL && count < 30)
+            while (change >= TOL && count < 10)
             {
                 if (flag)
                 {
@@ -815,16 +866,13 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
                 }
                 else
                     flag = true;
-                std::cout << "poromporompom perom perom" << std::endl;
                 for (int c = 0; c < CLData->number_of_clusters; c++)
                 {
                     (*clusters)[c].points.clear();
                     (*clusters)[c].size = 0;
                 }
                 frechet_method(&HashTablesObject, centroidPoints, clusters, inputPoints_2d, CLData, CLData->numberOfInputPoints);
-                std::cout << "poromporompom perom perom1" << std::endl;
                 change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
-                std::cout << "poromporom pom pom" << std::endl;
 
                 std::cout << "Change " << change << "," << count << std::endl;
                 int totalPoints = 0;
@@ -853,13 +901,12 @@ double evalSilhouette(clusterInputData *CLData, std::vector<Cluster> *clusters)
         double silhouetteSum = 0.0;
         for (int j = 0; j < (*clusters)[i].size; j++)
         { // for each point in cluster
-            silhouetteSum += silhouette_calculator((*clusters)[i].points[j], clusters, CLData->dimension);
+            silhouetteSum += silhouette_calculator((*clusters)[i].points[j], clusters, CLData->dimension, CLData->update);
         }
         (*clusters)[i].silhouette = silhouetteSum / (double)((*clusters)[i].size); // saves average
         totalSilhouette += silhouetteSum;
     }
     totalSilhouette /= CLData->numberOfInputPoints;
-
     return totalSilhouette;
 }
 

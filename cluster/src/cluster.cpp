@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         centroidPoints[i]->coords.resize(CLData->dimension);
     }
 
-    std::vector<PointPtr> tempCentroidPoints = k_means(inputPoints, CLData); //CLData->number_of_clusters, CLData->dimension);
+    std::vector<PointPtr> tempCentroidPoints = k_means(inputPoints, CLData); // CLData->number_of_clusters, CLData->dimension);
     // Translate actual points that k_means returned to virtual centroid points
     for (int i = 0; i < CLData->number_of_clusters; i++)
     {
@@ -74,8 +74,15 @@ int main(int argc, char **argv)
     }
     std::cout << "Assigning points to clusters..." << std::endl;
 
+    std::vector<PointPtr> *inputPoints_2d = new std::vector<PointPtr>;
+    inputPoints_2d->resize(CLData->numberOfInputPoints);
+    for (int i = 0; i < CLData->numberOfInputPoints; i++)
+    {
+        (*inputPoints_2d)[i] = concat_point(inputPoints[i], CLData->dimension);
+    }
+
     auto cluster_start = std::chrono::high_resolution_clock::now();
-    if (execCluster(CLData, &clusters, &inputPoints, &centroidPoints) == EXIT_FAILURE)
+    if (execCluster(CLData, &clusters, &inputPoints, inputPoints_2d, &centroidPoints) == EXIT_FAILURE)
     {
         return EXIT_FAILURE;
     }
@@ -87,7 +94,7 @@ int main(int argc, char **argv)
     double totalSilhouette = evalSilhouette(CLData, &clusters);
 
     std::cout << "Writing output file..." << std::endl;
-    if (!writeToOutput(CLData, &clusters, &centroidPoints, totalSilhouette, tCluster))
+    if (writeToOutput(CLData, &clusters, &centroidPoints, totalSilhouette, tCluster))
     {
         std::cerr << "Error in writing output" << std::endl;
         return EXIT_FAIL_OUTPUT_ERR;
