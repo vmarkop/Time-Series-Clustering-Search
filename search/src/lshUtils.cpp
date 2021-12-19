@@ -249,6 +249,7 @@ int writeToOutputFrDsc(inputData *SearchData,
 
         outputFile << "Approximate Nearest neighbor: "
                    << queryOutputData[i]->point->id << std::endl;
+
         outputFile << "True Nearest neighbor: "
                    << queryTrueNeighbors[i]->point->id << std::endl;
 
