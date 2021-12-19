@@ -8,6 +8,10 @@
 
 #include "projectUtils.h"
 
+#include "../../Fred/include/curve.hpp"
+#include "../../Fred/include/point.hpp"
+#include "../../Fred/include/frechet.hpp"
+
 class FrechetContinuousHashTables
 {
 private:
@@ -28,5 +32,8 @@ public:
     kNeighboursPtr FrCont_find_k_nearest_neighbours(PointPtr queryPoint, int k_neighbours);
     // std::vector<PointPtr> range_search(PointPtr queryPoint, double range, std::vector<std::string> *foundPoints = NULL);
 };
+
+double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension);
+Curve *convertToFredCurve(PointPtr p, int dim);
 
 #endif

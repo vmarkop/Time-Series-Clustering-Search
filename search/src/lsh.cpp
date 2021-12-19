@@ -193,6 +193,15 @@ int main(int argc, char **argv)
                 double tTrueAverage = 0.0;
                 for (int i = 0; i < numOfQueries; i++)
                     tTrueAverage += tLSH[i];
+                
+                // LSH range search
+                std::vector<std::vector<PointPtr>> queryRangeSearch;
+                queryRangeSearch.resize(queryLines.size());
+                std::cout << "Executing range search algorithm..." << std::endl;
+                for (int i = 0; i < queryLines.size(); i++)
+                {
+                    queryRangeSearch[i] = HashTablesObject.FrechetDiscreteHashTables::range_search(queryCurves[i], 100);
+                }
 
                 // Writing results to outputFile
                 if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))

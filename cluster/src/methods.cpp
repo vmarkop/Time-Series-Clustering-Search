@@ -4,8 +4,8 @@
 #include <limits.h>
 
 #include "methods.h"
-#include "../../lib/mathUtils.h"
-#include "../../lib/projectUtils.h"
+#include "mathUtils.h"
+#include "projectUtils.h"
 
 // Returns index of closest centroid point, after checking all points
 int lloyd_method(std::vector<PointPtr> *centroidPoints, PointPtr point, int dimension)
@@ -26,7 +26,7 @@ int lloyd_method(std::vector<PointPtr> *centroidPoints, PointPtr point, int dime
     return index;
 }
 
-void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, const std::vector<PointPtr> *inputPoints, inputData *CLData, int numOfInputPoints)
+void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, const std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints)
 {
     std::vector<PointPtr> foundPoints;
     std::vector<std::string> foundPointIDs;
@@ -164,7 +164,7 @@ void lsh_method(HashTables *HashTablesObject, std::vector<PointPtr> *centroids, 
     foundPointIDsPerCluster.clear();
 }
 
-void hyperCube_method(HChashTable *HypercubeObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *inputPoints, inputData *CLData, int numOfInputPoints)
+void hyperCube_method(HChashTable *HypercubeObject, std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters, std::vector<PointPtr> *inputPoints, clusterInputData *CLData, int numOfInputPoints)
 {
     std::vector<PointPtr> foundPoints;
     std::vector<std::string> foundPointIDs;
@@ -291,62 +291,4 @@ void hyperCube_method(HChashTable *HypercubeObject, std::vector<PointPtr> *centr
     for (int c = 0; c < CLData->number_of_clusters; c++)
         foundPointIDsPerCluster[c].clear();
     foundPointIDsPerCluster.clear();
-}
-
-double minDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension)
-{
-    double minDist = INT_MAX;
-    double currDist = 0.0;
-
-    for (int i = 0; i < numOfCentroids; i++)
-    {
-        for (int j = 0; j < i; j++)
-        {
-            currDist = euclideanDistance((*centroidPoints)[i], (*centroidPoints)[j], dimension);
-            if (currDist < minDist)
-                minDist = currDist;
-        }
-    }
-    return minDist;
-}
-
-std::vector<PointPtr> find_duplicates(std::vector<std::vector<PointPtr>> clusterPoints, int numOfClusters)
-{
-    std::vector<PointPtr> mainArray;
-    std::vector<PointPtr> tempArray;
-    std::vector<PointPtr> duplPoints;
-    for (int i = 0; i < numOfClusters; i++)
-    {
-        mainArray.clear();
-        std::merge((clusterPoints)[i].begin(), (clusterPoints)[i].end(), tempArray.begin(), tempArray.end(), std::back_inserter(mainArray), BY_ID());
-        tempArray.clear();
-        for (auto currPoint : mainArray)
-        {
-            tempArray.push_back(currPoint);
-        }
-    }
-
-    if (!mainArray.empty())
-    {
-        PointPtr currPoint = mainArray[0];
-        int i = 1;
-        while (i < mainArray.size())
-        {
-            if (currPoint->id == mainArray[i]->id)
-            {
-                duplPoints.push_back(currPoint);
-                i++;
-                while (i < mainArray.size())
-                {
-                    if (currPoint->id != mainArray[i]->id)
-                        break;
-                    i++;
-                }
-                continue;
-            }
-            currPoint = mainArray[i];
-            i++;
-        }
-    }
-    return duplPoints;
 }

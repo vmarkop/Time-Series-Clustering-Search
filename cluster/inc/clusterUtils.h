@@ -19,6 +19,10 @@
 #define CLASSIC_METHOD 0
 #define LSH_METHOD 1
 #define HYPERCUBE_METHOD 2
+#define FRECHET_D_METHOD 3
+
+#define UPDATE_FRECHET 0
+#define UPDATE_VECTOR 1
 
 #define TOL (50.0)
 
@@ -37,9 +41,10 @@ typedef struct ClusterDataStruct
     std::string inputFileName,
         configFileName,
         outputFileName,
-        methodName;
+        methodName,
+        updateName;
 
-    int method;
+    int method, update;
 
     bool complete;
 
@@ -53,19 +58,24 @@ typedef struct ClusterDataStruct
     int numberOfInputPoints;
     int dimension;
 
-} inputData;
+} clusterInputData;
 
 double silhouette_calculator(PointPtr point,
                              std::vector<Cluster> *clusters,
-                             int dimensions);
+                             int dimensions,
+                             int method);
+double silhouette_calculator_frechet(PointPtr point,
+                                     std::vector<Cluster> *clusters,
+                                     int dimensions);
 std::vector<int> get_2_closest_clusters(PointPtr point,
                                         std::vector<Cluster> *clusters,
-                                        int dimensions);
+                                        int dimensions,
+                                        int useEuclDist = 1);
 PointPtr update_centroid(ClusterPtr cluster, int dimension);
-double calculateChanges(std::vector<PointPtr> *centroids,
-                        std::vector<Cluster> *clusters,
+double calculateChanges(std::vector<PointPtr> *centroids, std::vector<Cluster> *clusters,
                         std::vector<PointPtr> *newCentroids,
-                        int dimension);
+                        int dimension,
+                        int method);
 double calculateChangesCurve(std::vector<PointPtr> *centroids,
                              std::vector<Cluster> *clusters,
                              std::vector<PointPtr> *newCentroids,
@@ -78,19 +88,23 @@ PointPtr findMean(treeNodePtr treeNode);
 void fillTree(treeNodePtr treeNode,
               std::vector<PointPtr> c_points,
               std::vector<int> *inp);
-int getInputData(int argc, char **argv, inputData *CLData);
-int execCluster(inputData *CLData,
+int getCLInputData(int argc, char **argv, clusterInputData *CLData);
+int execCluster(clusterInputData *CLData,
                 std::vector<Cluster> *clusters,
                 std::vector<PointPtr> *inputPoints,
+                std::vector<PointPtr> *inputPoints_2d,
                 std::vector<PointPtr> *centroidPoints);
-double evalSilhouette(inputData *CLData, std::vector<Cluster> *clusters);
-int writeToOutput(inputData *CLData,
+double evalSilhouette(clusterInputData *CLData, std::vector<Cluster> *clusters);
+int writeToOutput(clusterInputData *CLData,
                   std::vector<Cluster> *clusters,
                   std::vector<PointPtr> *centroidPoints,
                   double totalSilhouette,
                   int tCluster);
 void deleteData(std::vector<PointPtr> *inputPoints,
-                inputData *CLData,
+                clusterInputData *CLData,
                 std::vector<PointPtr> *centroidPoints);
+
+double minDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension);
+double minFrDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension);
 
 #endif

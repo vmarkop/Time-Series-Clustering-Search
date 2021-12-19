@@ -320,7 +320,6 @@ void remove_dup_points(crvPtr curve, int dimension)
             prev[1] = (*curve)[i]->coords[1];
         }
     }
-    std::cout << "qwerty" << std::endl;
     int i = 0;
     // for (int index : removedIndex)
     // {
@@ -351,8 +350,8 @@ void pad_curve_new(crvPtr curve, int dim)
     {
         PointPtr _point = new PointStruct;
         _point->coords.resize(2);
-        _point->coords[0] = INT_MAX - 10;
-        _point->coords[1] = INT_MAX - 10;
+        _point->coords[0] = 10000;
+        _point->coords[1] = 10000;
         curve->push_back(_point);
     }
 }
@@ -391,7 +390,7 @@ void minimaximize_curve_cont(crvPtr _curve, int dimension)
     }
 }
 
-void pointToCurve(PointPtr _p, crvPtr _c, int dimension)
+void pointToCurve(const PointPtr _p, crvPtr _c, int dimension)
 {
     if (_p == NULL)
     {
@@ -417,34 +416,6 @@ void curveToPoint(PointPtr _p, crvPtr _c, int dimension)
         _p->coords[i * 2] = (*_c)[i]->coords[0];
         _p->coords[(i * 2) + 1] = (*_c)[i]->coords[1];
     }
-}
-
-double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension)
-{
-    Curve *fp = convertToFredCurve(p, dimension);
-    Curve *fq = convertToFredCurve(q, dimension);
-    struct Frechet::Continuous::Distance dist = Frechet::Continuous::distance(*fp, *fq);
-    delete fp;
-    delete fq;
-    return dist.value;
-    // turn point p to Fred Curve
-    // turn point q to Fred Curve
-    // call Fred Cont Dist
-    // return Fred Cont Dist
-}
-
-Curve *convertToFredCurve(PointPtr p, int dim)
-{
-    Points fp(1);
-    for (int i = 0; i < dim; i++)
-    {
-        Point t(1);
-        t.set(0, p->coords[i * 2 + 1]);
-        fp.add(t);
-    }
-
-    Curve *curve = new Curve(fp);
-    return curve;
 }
 
 void deleteCrv(crvPtr _curve)

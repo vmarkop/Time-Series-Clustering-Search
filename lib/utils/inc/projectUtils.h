@@ -5,12 +5,8 @@
 #include <vector>
 #include <limits.h>
 
-#include "../../Fred/include/curve.hpp"
-#include "../../Fred/include/point.hpp"
-#include "../../Fred/include/frechet.hpp"
-
 #define BIGM (4294967291)
-#define W (5)
+#define W (30)
 #define DELTA (3)
 #define EPSILON (1)
 
@@ -99,11 +95,9 @@ void filter_curve(crvPtr curve, int dimension, double epsilon);
 crvPtr snap_curve_cont(crvPtr snapped_curve, crvPtr curve, double delta, int dimension);
 void minimaximize_curve_cont(crvPtr _curve, int dimension);
 
-void pointToCurve(PointPtr _p, crvPtr _c, int dimension);
+void pointToCurve(const PointPtr _p, crvPtr _c, int dimension);
 void curveToPoint(PointPtr _p, crvPtr _c, int dimension);
 
-double ContinuousFrechetDistance(PointPtr p, PointPtr q, int dimension);
-Curve *convertToFredCurve(PointPtr p, int dim);
 void deleteCrv(crvPtr _curve);
 
 treeNodePtr buildTree(double height);
