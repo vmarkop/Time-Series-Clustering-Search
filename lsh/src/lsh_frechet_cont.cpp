@@ -125,7 +125,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
         pad_curve_new(&snapped_curve, this->dim);
         curveToPoint(concated_point, &snapped_curve, this->dim);
 
-        int queryID = this->FrContHashFunc(concated_point, i);
+        long queryID = this->FrContHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
@@ -170,7 +170,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
             pad_curve_new(&snapped_curve, this->dim);
             curveToPoint(concated_point, &snapped_curve, this->dim);
 
-            int queryID = this->FrContHashFunc(concated_point, i);
+            long queryID = this->FrContHashFunc(concated_point, i);
             int g = euclideanModulo(queryID, this->TableSize);
 
             for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do

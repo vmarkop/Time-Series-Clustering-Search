@@ -66,7 +66,7 @@ void FrechetDiscreteHashTables::FrDscInsertPoint(PointPtr point)
         pad_curve_new(&snapped_curve, this->dim);
         curveToPoint(concated_point, &snapped_curve, this->dim);
 
-        int id = FrDscHashFunc(concated_point, i);
+        long id = FrDscHashFunc(concated_point, i);
         std::cout << "ididididididididididid" << id << std::endl;
         int j = euclideanModulo(id, this->TableSize);
         std::cout << "asdasdqasdjjjjjjjjjjjjjjj" << j << std::endl;
@@ -83,7 +83,7 @@ void FrechetDiscreteHashTables::FrDscInsertPoint(PointPtr point)
     }
 }
 
-int FrechetDiscreteHashTables::FrDscHashFunc(PointPtr point, int hashtableId)
+long FrechetDiscreteHashTables::FrDscHashFunc(PointPtr point, int hashtableId)
 {
     long h;
     long hri = 0;
@@ -121,12 +121,12 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
     {
         PointPtr concated_point = concat_point(queryPoint, this->dim);
         crv _curve, snapped_curve;
-        pointToCurve(concated_point, &_curve, this->dim);
+        pointToCurve(queryPoint, &_curve, this->dim);
         snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
         remove_dup_points(&snapped_curve, this->dim);
         pad_curve_new(&snapped_curve, this->dim);
         curveToPoint(concated_point, &snapped_curve, this->dim);
-        int queryID = FrDscHashFunc(concated_point, i);
+        long queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
@@ -146,27 +146,27 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                     sort_neighbours(returnData, k_neighbours);
                 }
             }
-            if (count > 20 * numOfHashTables)
-            {
-                delete currNeighbour;
-                return returnData;
-            }
+            // if (count > 20 * numOfHashTables)
+            // {
+            //     delete currNeighbour;
+            //     return returnData;
+            // }
         }
     }
 
-    if (returnData->size < k_neighbours)
+    if (count < 50)
     { // rerun without ID check if haven't found enough neighbors
 
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
         {
             PointPtr concated_point = concat_point(queryPoint, this->dim);
             crv _curve, snapped_curve;
-            pointToCurve(concated_point, &_curve, this->dim);
+            pointToCurve(queryPoint, &_curve, this->dim);
             snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
             remove_dup_points(&snapped_curve, this->dim);
             pad_curve_new(&snapped_curve, this->dim);
             curveToPoint(concated_point, &snapped_curve, this->dim);
-            int queryID = FrDscHashFunc(concated_point, i);
+            long queryID = FrDscHashFunc(concated_point, i);
             int g = euclideanModulo(queryID, this->TableSize);
 
             for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
@@ -176,7 +176,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                 {
 
                     currNeighbour->point = this->hash_tables[i][g].points[j];
-                    currNeighbour->dist = euclideanDistance(originalQueryPoint, currNeighbour->point, this->dim * 2);
+                    currNeighbour->dist = DFDistance(originalQueryPoint, currNeighbour->point, this->dim);
                     // if dist(q,p) < db then b <- p; db <- dist(q,p)
                     if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist)
                     {
@@ -190,11 +190,11 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
                         sort_neighbours(returnData, k_neighbours);
                     }
                 }
-                if (count > 10 * numOfHashTables)
-                {
-                    delete currNeighbour;
-                    return returnData;
-                }
+                // if (count > 10 * numOfHashTables)
+                // {
+                //     delete currNeighbour;
+                //     return returnData;
+                // }
             }
         }
     }
@@ -224,7 +224,6 @@ std::vector<PointPtr> FrechetDiscreteHashTables::range_search(PointPtr queryPoin
 
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
-        metric1++;
         PointPtr concated_point = new PointStruct;
         concated_point->coords.resize(this->dim * 2);
         crv _curve, snapped_curve;
@@ -233,24 +232,21 @@ std::vector<PointPtr> FrechetDiscreteHashTables::range_search(PointPtr queryPoin
         remove_dup_points(&snapped_curve, this->dim);
         pad_curve_new(&snapped_curve, this->dim);
         curveToPoint(concated_point, &snapped_curve, this->dim);
-        int queryID = FrDscHashFunc(concated_point, i);
+        long queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
         // std::cout << "something" << g << std::endl;
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
-            metric2++;
             bool found = binary_search(foundPoints->begin(), foundPoints->end(), this->hash_tables[i][g].points[j]->id);
 
             if (!found)
             {
-                metric3++;
                 currNeighbour->point = this->hash_tables[i][g].points[j];
 
                 currNeighbour->dist = DFDistance(queryPoint, currNeighbour->point, this->dim);
 
                 if (currNeighbour->dist < range)
                 {
-                    metric4++;
                     returnData.push_back(this->hash_tables[i][g].points[j]);
                     foundPoints->push_back(this->hash_tables[i][g].points[j]->id);
                     sort_points(&returnData);

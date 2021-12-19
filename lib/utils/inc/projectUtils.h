@@ -7,7 +7,7 @@
 
 #define BIGM (4294967291)
 #define W (30)
-#define DELTA (3)
+#define DELTA (1.73)
 #define EPSILON (1)
 
 typedef struct Point__Struct *PointPtr;
@@ -78,7 +78,8 @@ void sort_neighbours(kNeighboursPtr k_nearest_neighbours, int k_neighbours);
 void sort_points(std::vector<PointPtr> *Data);
 void sort_points_str(std::vector<std::string> *Data);
 int notAlreadyExists(kNeighboursPtr k_nearest_neighbours, std::string pointID);
-kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dimension);
+kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dimension, int useEuclDist = 1);
+kNeighboursPtr find_k_true_neighbours_dfd(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dim);
 std::string checkRerun();
 crvPtr snap_curve(crvPtr snapped_curve, const crvPtr curve, double delta, std::vector<double> *taf, int dimension);
 
