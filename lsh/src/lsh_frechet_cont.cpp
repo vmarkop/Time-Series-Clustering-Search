@@ -40,8 +40,8 @@ FrechetContinuousHashTables::FrechetContinuousHashTables(int L, int numberOfHype
         {
             this->t[i][j] = uniformDistributionGenerator(0.0, W * 1.0);
             this->ri[i][j] = rand() % 2000 - 1000;
-            this->v[i][j].resize(this->dim);
-            for (int l = 0; l < this->dim; l++)
+            this->v[i][j].resize(this->dim * 2);
+            for (int l = 0; l < this->dim * 2; l++)
                 this->v[i][j][l] = normalDistributionGenerator(0.0, 1.0);
         }
     }
@@ -49,41 +49,38 @@ FrechetContinuousHashTables::FrechetContinuousHashTables(int L, int numberOfHype
 
 void FrechetContinuousHashTables::FrContInsertPoint(PointPtr point)
 {
-    // (1,x),(2,y),(3,z)
-    PointPtr concated_point = concat_point(point, this->dim);
-    PointPtr original_point = concat_point(point, this->dim);
-
     for (int i = 0; i < this->numOfHashTables; i++)
     {
+        PointPtr concated_point = new PointStruct;
+        concated_point->coords.resize(this->dim * 2);
         std::vector<PointPtr> _curve, snapped_curve;
 
-        pointToCurve(concated_point, &_curve, this->dim);
+        pointToCurve(point, &_curve, this->dim);
         filter_curve(&_curve, this->dim, EPSILON);
         snap_curve_cont(&snapped_curve, &_curve, this->_delta, this->dim);
         minimaximize_curve_cont(&snapped_curve, this->dim);
         pad_curve_new(&snapped_curve, this->dim);
         curveToPoint(concated_point, &snapped_curve, this->dim);
 
+        long id = FrContHashFunc(concated_point, i);
+        int j = euclideanModulo(id, this->TableSize);
+
+        this->hash_tables[i][j].ID.push_back(FrContHashFunc(concated_point, i));
+        this->hash_tables[i][j].points.push_back(point);
+
         deleteCrv(&snapped_curve);
         deleteCrv(&_curve);
         snapped_curve.clear();
         _curve.clear();
 
-        int id = FrContHashFunc(concated_point, i);
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].ID.push_back(id);
-        this->hash_tables[i][euclideanModulo(id, this->TableSize)].points.push_back(original_point);
-
-        //(r1h1 + r2h2 + r3h3 + r4h4 + r5h5) % m = ((r1h1 % m) + (r2h2 % m) + (r3h3 % m) + (r4h4 % m) + (r5h5 % m)) % m
-        // = = = ( ((r1%m * h1%m)) % m + ... + ((r5%m * h5%m)) % m ) % m
-        //
+        delete concated_point;
     }
-    delete concated_point;
 }
 
 int FrechetContinuousHashTables::FrContHashFunc(PointPtr point, int hashtableId)
 {
-    int h;
-    int hri = 0;
+    long h;
+    long hri = 0;
     for (int i = 0; i < numberOfHyperplanes; i++)
     {
         // hri += this->ri[hashtableId][i] * floor((inner_product(point->coords.begin(), point->coords.end(), this->v[hashtableId][i].begin(), 0) + this->t[hashtableId][i]) / W);
@@ -156,7 +153,7 @@ kNeighboursPtr FrechetContinuousHashTables::FrCont_find_k_nearest_neighbours(Poi
         }
     }
 
-    if (returnData->size < k_neighbours)
+    if (returnData->size < k_neighbours * numOfHashTables)
     { // rerun without ID check if haven't found enough neighbors
 
         for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do

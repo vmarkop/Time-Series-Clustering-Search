@@ -277,12 +277,19 @@ int main(int argc, char **argv)
                 int numOfInputPoints = inputPoints.size();
 
                 // Create HashTablesObject that stores curves, projected to vectors of size 2*dim
-                FrechetContinuousHashTables HashTablesObject(1, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
+                FrechetContinuousHashTables HashTablesObject(1, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 8);
 
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
+                std::vector<PointPtr> *inputPoints_2d = new std::vector<PointPtr>;
+                inputPoints_2d->resize(numOfInputPoints);
                 for (int i = 0; i < numOfInputPoints; i++)
-                    HashTablesObject.FrechetContinuousHashTables::FrContInsertPoint(inputPoints[i]);
+                {
+                    (*inputPoints_2d)[i] = concat_point(inputPoints[i], SearchData->dimension);
+                }
+
+                for (int i = 0; i < numOfInputPoints; i++)
+                    HashTablesObject.FrechetContinuousHashTables::FrContInsertPoint((*inputPoints_2d)[i]);
 
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
