@@ -133,6 +133,12 @@ int main(int argc, char **argv)
                 FrechetDiscreteHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 4);
                 // Inserting curves to hash table, after snapping them
                 std::cout << "Inserting items to hash table..." << std::endl;
+                std::vector<PointPtr> *inputPoints_2d = new std::vector<PointPtr>;
+                inputPoints_2d->resize(numOfInputPoints);
+                for (int i = 0; i < numOfInputPoints; i++)
+                {
+                    (*inputPoints_2d)[i] = concat_point(inputPoints[i], SearchData->dimension);
+                }
                 for (int i = 0; i < numOfInputPoints; i++)
                 {
                     std::cout << inputPoints[i]->coords.size() << std::endl;
@@ -185,7 +191,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto True_start = std::chrono::high_resolution_clock::now();
-                    kTrueOutputData = find_k_true_neighbours(queryCurves[i], 1, inputPoints, SearchData->dimension);
+                    kTrueOutputData = find_k_true_neighbours(queryCurves[i], 1, inputPoints, SearchData->dimension, 0);
                     queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
                     auto True_end = std::chrono::high_resolution_clock::now();
                     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
@@ -193,15 +199,6 @@ int main(int argc, char **argv)
                 double tTrueAverage = 0.0;
                 for (int i = 0; i < numOfQueries; i++)
                     tTrueAverage += tLSH[i];
-                
-                // LSH range search
-                std::vector<std::vector<PointPtr>> queryRangeSearch;
-                queryRangeSearch.resize(queryLines.size());
-                std::cout << "Executing range search algorithm..." << std::endl;
-                for (int i = 0; i < queryLines.size(); i++)
-                {
-                    queryRangeSearch[i] = HashTablesObject.FrechetDiscreteHashTables::range_search(queryCurves[i], 100);
-                }
 
                 // Writing results to outputFile
                 if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))
@@ -275,7 +272,7 @@ int main(int argc, char **argv)
                 for (int i = 0; i < numOfQueries; i++)
                 {
                     auto True_start = std::chrono::high_resolution_clock::now();
-                    kTrueOutputData = find_k_true_neighbours(queryCurves[i], 1, inputPoints, SearchData->dimension);
+                    kTrueOutputData = find_k_true_neighbours(queryCurves[i], 1, inputPoints, SearchData->dimension, 0);
                     queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
                     auto True_end = std::chrono::high_resolution_clock::now();
                     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();

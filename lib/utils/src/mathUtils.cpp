@@ -185,10 +185,10 @@ int avoidOverFlowModulo(long a, long b, long m, char op)
     }
 }
 
-int euclideanModulo(long x, long y)
+long euclideanModulo(long x, long y)
 {
     long returnValue = x % y;
-    return returnValue >= 0 ? returnValue : (returnValue + std::abs(y));
+    return returnValue >= 0 ? returnValue : returnValue + std::abs(y);
 }
 
 int powerWithBase2(int exp)

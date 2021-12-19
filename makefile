@@ -20,8 +20,8 @@ CCFLAGS = -lm -g -O3
 
 all: search lsh.out cube.out cluster.out  
 
-search: $(SRCSEARCH)/lsh.cpp
-	g++ $(CCFLAGS) -o bin/search $(SRCSEARCH)/lsh.cpp $(SRCLSH)/hashTable.cpp $(SRCSEARCH)/lshUtils.cpp $(SRCLSH)/lsh_frechet_cont.cpp $(SRCLSH)/lsh_frechet_dsc.cpp $(LIB)$(SRCUTIL)/mathUtils.cpp $(LIB)$(SRCUTIL)/projectUtils.cpp $(SRCFRED)/config.cpp $(SRCFRED)/curve.cpp $(SRCFRED)/frechet.cpp $(SRCFRED)/interval.cpp $(SRCFRED)/point.cpp $(SRCFRED)/simplification.cpp -I $(INCSEARCH) -I $(LIB)$(INCUTIL) -I $(INCLSH) -I $(INCFRED)
+search: $(SRCSEARCH)/search.cpp
+	g++ $(CCFLAGS) -o bin/search $(SRCSEARCH)/search.cpp $(SRCLSH)/hashTable.cpp $(SRCSEARCH)/lshUtils.cpp $(SRCLSH)/lsh_frechet_cont.cpp $(SRCLSH)/lsh_frechet_dsc.cpp $(LIB)$(SRCUTIL)/mathUtils.cpp $(LIB)$(SRCUTIL)/projectUtils.cpp $(SRCFRED)/config.cpp $(SRCFRED)/curve.cpp $(SRCFRED)/frechet.cpp $(SRCFRED)/interval.cpp $(SRCFRED)/point.cpp $(SRCFRED)/simplification.cpp -I $(INCSEARCH) -I $(LIB)$(INCUTIL) -I $(INCLSH) -I $(INCFRED)
 
 # lsh.out: $(SRCLSH)/lsh.cpp
 # 	g++ $(CCFLAGS) -o bin/lsh.out $(SRCLSH)/lsh.cpp $(SRCLSH)/hashTable.cpp $(SRCLSH)/lshUtils.cpp $(LIB)$(SRCUTIL)/mathUtils.cpp $(LIB)$(SRCUTIL)/projectUtils.cpp -I $(LIB)$(INCUTIL) -I $(INCLSH)

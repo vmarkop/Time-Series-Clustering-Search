@@ -127,8 +127,11 @@ int notAlreadyExists(kNeighboursPtr k_nearest_neighbours, std::string pointID)
     return 1;
 }
 
-kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dim)
+kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dim, int useEuclDist)
 {
+    if (!useEuclDist)
+        return find_k_true_neighbours_dfd(concat_point(queryPoint, dim), k_neighbours, inputPoints, dim);
+
     NeighbourPtr currNeighbour = new Neighbour;
     kNeighboursPtr returnData = new kNeighbours;
 
@@ -146,6 +149,50 @@ kNeighboursPtr find_k_true_neighbours(PointPtr queryPoint, int k_neighbours, std
     {
         currNeighbour->point = inputPoints[i];
         currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, dim);
+
+        if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist && currNeighbour->dist > 0)
+        {
+            // if (returnData->size < k_neighbours)
+            //     returnData->size++;
+            returnData->neighbours[k_neighbours - 1]->point = currNeighbour->point;
+            returnData->neighbours[k_neighbours - 1]->dist = currNeighbour->dist;
+
+            if (k_neighbours > 1)
+                sort_neighbours(returnData, k_neighbours);
+        }
+    }
+
+    delete currNeighbour;
+    return returnData;
+}
+
+kNeighboursPtr find_k_true_neighbours_dfd(PointPtr queryPoint, int k_neighbours, std::vector<PointPtr> inputPoints, int dim)
+{
+    int numOfInputPoints = inputPoints.size();
+    std::vector<PointPtr> *inputPoints_2d = new std::vector<PointPtr>;
+    inputPoints_2d->resize(numOfInputPoints);
+    for (int i = 0; i < numOfInputPoints; i++)
+    {
+        (*inputPoints_2d)[i] = concat_point(inputPoints[i], dim);
+    }
+
+    NeighbourPtr currNeighbour = new Neighbour;
+    kNeighboursPtr returnData = new kNeighbours;
+
+    returnData->neighbours.resize(k_neighbours);
+    returnData->size = k_neighbours;
+
+    for (int i = 0; i < k_neighbours; i++)
+    {
+        returnData->neighbours[i] = new Neighbour;
+        returnData->neighbours[i]->point = NULL;
+        returnData->neighbours[i]->dist = INT32_MAX; // initialize distance with a very big value
+    }
+
+    for (int i = 0; i < numOfInputPoints; i++)
+    {
+        currNeighbour->point = (*inputPoints_2d)[i];
+        currNeighbour->dist = DFDistance(queryPoint, currNeighbour->point, dim);
 
         if (currNeighbour->dist < returnData->neighbours[k_neighbours - 1]->dist && currNeighbour->dist > 0)
         {
@@ -346,7 +393,7 @@ void pad_curve(PointPtr curve, int dim)
 void pad_curve_new(crvPtr curve, int dim)
 {
     int curveSize = curve->size();
-    for (int i = curveSize; i < dim; i++)
+    for (int i = curveSize - 1; i < dim; i++)
     {
         PointPtr _point = new PointStruct;
         _point->coords.resize(2);
