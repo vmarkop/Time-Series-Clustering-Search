@@ -14,20 +14,20 @@ HChashTable::HChashTable(int dimension,
                          int probes,
                          int maxcandidatesPoints)
 {
-    //Initializing
+    // Initializing
     this->dimension = dimension;
     this->projectionDimension = projectionDimension;
     this->probes = probes;
     this->maxcandidatesPoints = maxcandidatesPoints;
 
-    //Finding number of buckets
+    // Finding number of buckets
     this->bucketCount = powerWithBase2(this->projectionDimension + 1) - 1;
 
     this->Table.resize(this->bucketCount);
     this->t.resize(this->projectionDimension);
     this->v.resize(this->projectionDimension);
 
-    //Creating map
+    // Creating map
     this->func_F.resize(projectionDimension);
 
     for (int i = 0; i < this->bucketCount; i++)
@@ -244,23 +244,28 @@ std::vector<PointPtr> HChashTable::range_search(PointPtr queryPoint, double rang
         currBucket = (*bucketsToCheck)[index];
         bucketsToCheck->pop_back();
         // Checks currBucket
-        for (int k = 0; k < this->Table[currBucket]->points.size() && pointsChecked < this->maxcandidatesPoints; k++)
+        if (this->Table[currBucket] != NULL)
         {
-
-            // bool found = binary_search(returnData.begin(), returnData.end(), this->Table[currBucket]->points[k], BY_ID());
-            bool found = binary_search(foundPoints->begin(), foundPoints->end(), this->Table[currBucket]->points[k]->id);
-
-            if (!found)
+            for (int k = 0; k < this->Table[currBucket]->points.size(); k++)
             {
-                currNeighbour->point = this->Table[currBucket]->points[k];
-                currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, this->dimension);
-
-                if (currNeighbour->dist < range)
+                if (pointsChecked < this->maxcandidatesPoints)
                 {
-                    returnData.push_back(this->Table[currBucket]->points[k]);
-                    foundPoints->push_back(this->Table[currBucket]->points[k]->id);
-                    sort_points(&returnData);
-                    sort_points_str(foundPoints);
+                    // bool found = binary_search(returnData.begin(), returnData.end(), this->Table[currBucket]->points[k], BY_ID());
+                    bool found = binary_search(foundPoints->begin(), foundPoints->end(), this->Table[currBucket]->points[k]->id);
+
+                    if (!found)
+                    {
+                        currNeighbour->point = this->Table[currBucket]->points[k];
+                        currNeighbour->dist = euclideanDistance(queryPoint, currNeighbour->point, this->dimension);
+
+                        if (currNeighbour->dist < range)
+                        {
+                            returnData.push_back(this->Table[currBucket]->points[k]);
+                            foundPoints->push_back(this->Table[currBucket]->points[k]->id);
+                            sort_points(&returnData);
+                            sort_points_str(foundPoints);
+                        }
+                    }
                 }
             }
         }

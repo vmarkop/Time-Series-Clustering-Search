@@ -18,12 +18,10 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
     foundPointIDsPerCluster.resize(CLData->number_of_clusters);
 
     int inputPointsSize = CLData->numberOfInputPoints;
-    // std::cout << "123" << std::endl;
     double currRadius = minFrDistBetweenCentroids(centroids, CLData->number_of_clusters, CLData->dimension) / 2;
     std::vector<std::vector<PointPtr>> clusterPoints;
     std::vector<PointPtr> duplicates;
     clusterPoints.resize(CLData->number_of_clusters);
-    // std::cout << "Hewtrgvs0" << std::endl;
     int initialInputPoints = inputPointsSize;
     double initialRadius = currRadius;
     int prevNumOfFound = 0;
@@ -39,15 +37,11 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
     while (initialInputPoints - numOfFound >= initialInputPoints / 2 && currRadius < initialRadius * 100 && (currNumOfFound >= prevNumOfFound || currNumOfFound > 1) && iiiiiiiii < 5)
     {
         iiiiiiiii++;
-        // std::cout << "Hello12345" << std::endl;
         prevNumOfFound = currNumOfFound;
         currNumOfFound = 0;
         for (int c = 0; c < CLData->number_of_clusters; c++)
         {
-            // std::cout << "Hello0" << std::endl;
             clusterPoints[c] = HashTablesObject->range_search((*centroids)[c], currRadius, &(foundPointIDsPerCluster[c]));
-            // std::cout << "Hello01" << std::endl;
-            // std::cout << "ClP[c] = " << clusterPoints[c].size() << std::endl;
         }
         std::vector<std::string> tempArray;
         for (int i = 0; i < CLData->number_of_clusters; i++)
@@ -107,8 +101,6 @@ void frechet_method(FrechetDiscreteHashTables *HashTablesObject, std::vector<Poi
                     clusterPoints[CentroidsToBeErased[i]].erase(clusterPoints[CentroidsToBeErased[i]].begin() + position[i]);
                 }
             }
-            // if (iiiiiiiii > 5)
-            //     break;
         }
         for (int c = 0; c < CLData->number_of_clusters; c++)
         {
@@ -394,7 +386,6 @@ double calculateChangesCurve(std::vector<PointPtr> *centroids, std::vector<Clust
                 for (int k = 0; k < dimension * 2; k++)
                     safeClusterPoints[j]->coords[k] = (*clusters)[i].points[j]->coords[k];
             }
-            std::cout << "auygsdf" << safeClusterPoints.size() << std::endl;
             int height = ceil(log2(safeClusterPoints.size()));
             trees[i] = buildTree(height);
             fillTree(trees[i], safeClusterPoints, &inputed);
@@ -767,7 +758,6 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
             int count = 0;
             while (change >= 1 && count < 10)
             {
-                std::cout << "frefre88" << std::endl;
                 if (flag)
                 {
                     for (int i = 0; i < CLData->number_of_clusters; i++)
