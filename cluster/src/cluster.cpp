@@ -47,16 +47,10 @@ int main(int argc, char **argv)
     // Translate actual points that k_means returned to virtual centroid points
     for (int i = 0; i < CLData->number_of_clusters; i++)
     {
-        std::cout << "asdasdasd" << CLData->update << std::endl;
         if (CLData->update == UPDATE_FRECHET) // turn centroid points into 2d points
         {
             PointPtr concated_point = concat_point(tempCentroidPoints[i], CLData->dimension);
             centroidPoints[i] = concated_point;
-            for (int j = 0; j < CLData->dimension * 2; j++)
-            {
-                std::cout << " " << centroidPoints[i]->coords[j];
-            }
-            std::cout << std::endl;
         }
         else
         {

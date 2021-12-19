@@ -563,22 +563,22 @@ int getCLInputData(int argc, char **argv, clusterInputData *CLData)
         std::cerr << "Input file name not given! Please try again using -i <input file>" << std::endl;
         return EXIT_FAIL_INPUT_ERR;
     }
-    if (std::find(found.begin(), found.end(), "configFile") == found.end()) // if not found inputFile
+    if (std::find(found.begin(), found.end(), "configFile") == found.end()) // if not found configFile
     {
         std::cerr << "Config file name not given! Please try again using -c <config file>" << std::endl;
         return EXIT_FAIL_CONFIG_ERR;
     }
-    if (std::find(found.begin(), found.end(), "outputFile") == found.end()) // if not found inputFile
+    if (std::find(found.begin(), found.end(), "outputFile") == found.end()) // if not found outputFile
     {
         std::cerr << "Output file name not given! Please try again using -o <output file>" << std::endl;
         return EXIT_FAIL_OUTPUT_ERR;
     }
-    if (std::find(found.begin(), found.end(), "assignment") == found.end()) // if not found inputFile
+    if (std::find(found.begin(), found.end(), "assignment") == found.end()) // if not found assignment
     {
         std::cerr << "Assignment not given! Please try again using -assignment <Classic OR LSH OR Hypercube OR LSH_Frechet>" << std::endl;
         return EXIT_FAIL_METHOD_ERR;
     }
-    if (std::find(found.begin(), found.end(), "update") == found.end()) // if not found inputFile
+    if (std::find(found.begin(), found.end(), "update") == found.end()) // if not found update
     {
         std::cerr << "Update method name not given! Please try again using -update <Mean Frechet or Mean Vector>" << std::endl;
         return EXIT_FAIL_METHOD_ERR;
@@ -704,45 +704,89 @@ int execCluster(clusterInputData *CLData, std::vector<Cluster> *clusters, std::v
     bool flag = false;
     if (CLData->method == CLASSIC_METHOD)
     {
-
-        double change = INT32_MAX * 1.0;
-        int count = 0;
-        while (change >= TOL / 1000 && count < 50)
+        if (CLData->update == UPDATE_VECTOR)
         {
-            if (flag)
+            double change = INT32_MAX * 1.0;
+            int count = 0;
+            while (change >= TOL / 1000 && count < 50)
             {
+                if (flag)
+                {
+                    for (int i = 0; i < CLData->number_of_clusters; i++)
+                    {
+                        delete (*centroidPoints)[i];
+                        (*centroidPoints)[i] = tempCentroidPoints[i];
+                        (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    }
+                    tempCentroidPoints.clear();
+                }
+                else
+                    flag = true;
+                for (int c = 0; c < CLData->number_of_clusters; c++)
+                {
+                    (*clusters)[c].points.clear();
+                    (*clusters)[c].size = 0;
+                }
+                int index = 0;
+                for (int i = 0; i < CLData->numberOfInputPoints; i++)
+                {
+                    index = lloyd_method(centroidPoints, (*inputPoints)[i], CLData->dimension);
+                    (*clusters)[index].points.push_back((*inputPoints)[i]);
+                    (*clusters)[index].size++;
+                }
+                change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
+
+                std::cout << "Change " << change << "," << count << std::endl;
+                int totalPoints = 0;
                 for (int i = 0; i < CLData->number_of_clusters; i++)
                 {
-                    delete (*centroidPoints)[i];
-                    (*centroidPoints)[i] = tempCentroidPoints[i];
-                    (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    totalPoints += (*clusters)[i].size;
                 }
-                tempCentroidPoints.clear();
+                std::cout << "Total points: " << totalPoints << std::endl;
+                count++;
             }
-            else
-                flag = true;
-            for (int c = 0; c < CLData->number_of_clusters; c++)
+        }
+        else if (CLData->update == UPDATE_FRECHET)
+        {
+            double change = INT32_MAX * 1.0;
+            int count = 0;
+            while (change >= TOL / 1000 && count < 50)
             {
-                (*clusters)[c].points.clear();
-                (*clusters)[c].size = 0;
-            }
-            int index = 0;
-            for (int i = 0; i < CLData->numberOfInputPoints; i++)
-            {
-                index = lloyd_method(centroidPoints, (*inputPoints)[i], CLData->dimension);
-                (*clusters)[index].points.push_back((*inputPoints)[i]);
-                (*clusters)[index].size++;
-            }
-            change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
+                if (flag)
+                {
+                    for (int i = 0; i < CLData->number_of_clusters; i++)
+                    {
+                        delete (*centroidPoints)[i];
+                        (*centroidPoints)[i] = tempCentroidPoints[i];
+                        (*clusters)[i].centroidPoint = tempCentroidPoints[i];
+                    }
+                    tempCentroidPoints.clear();
+                }
+                else
+                    flag = true;
+                for (int c = 0; c < CLData->number_of_clusters; c++)
+                {
+                    (*clusters)[c].points.clear();
+                    (*clusters)[c].size = 0;
+                }
+                int index = 0;
+                for (int i = 0; i < CLData->numberOfInputPoints; i++)
+                {
+                    index = lloyd_method(centroidPoints, (*inputPoints_2d)[i], CLData->dimension);
+                    (*clusters)[index].points.push_back((*inputPoints_2d)[i]);
+                    (*clusters)[index].size++;
+                }
+                change = calculateChanges(centroidPoints, clusters, &tempCentroidPoints, CLData->dimension, CLData->update);
 
-            std::cout << "Change " << change << "," << count << std::endl;
-            int totalPoints = 0;
-            for (int i = 0; i < CLData->number_of_clusters; i++)
-            {
-                totalPoints += (*clusters)[i].size;
+                std::cout << "Change " << change << "," << count << std::endl;
+                int totalPoints = 0;
+                for (int i = 0; i < CLData->number_of_clusters; i++)
+                {
+                    totalPoints += (*clusters)[i].size;
+                }
+                std::cout << "Total points: " << totalPoints << std::endl;
+                count++;
             }
-            std::cout << "Total points: " << totalPoints << std::endl;
-            count++;
         }
     }
     else if (CLData->method == LSH_METHOD)
