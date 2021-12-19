@@ -80,10 +80,10 @@ inputData *getInputData(int *argc, char **argv)
     found.push_back(" ");
     std::string input = {};
 
-    // if (std::find(found.begin(), found.end(), "k") == found.end()) // if not found -k
-    // {
-    //     SearchData->numberOfHyperplanes = DEF_K;
-    // }
+    if (std::find(found.begin(), found.end(), "k") == found.end()) // if not found -k
+    {
+        SearchData->numberOfHyperplanes = DEF_K;
+    }
     if (std::find(found.begin(), found.end(), "l") == found.end()) // if not found -l
     {
         SearchData->intL = DEF_L;
@@ -302,16 +302,16 @@ void deleteData(std::vector<PointPtr> *inputPoints,
 }
 
 void deleteFrechetData(std::vector<PointPtr> *inputPoints,
-                std::vector<PointPtr> *inputPoints_2d,
-                std::vector<PointPtr> *queryPoints,
-                std::vector<NeighbourPtr> *queryOutputData,
-                std::vector<NeighbourPtr> *queryTrueNeighbors,
-                inputData *SearchData)
+                       std::vector<PointPtr> *inputPoints_2d,
+                       std::vector<PointPtr> *queryPoints,
+                       std::vector<NeighbourPtr> *queryOutputData,
+                       std::vector<NeighbourPtr> *queryTrueNeighbors,
+                       inputData *SearchData)
 {
     for (int i = 0; i < inputPoints->size(); i++)
     {
         delete (*inputPoints)[i];
-        if(inputPoints_2d)
+        if (inputPoints_2d)
             delete (*inputPoints_2d)[i];
         if (i < queryPoints->size()) // Query points will always be <= input points, so this is safe
         {
@@ -320,7 +320,7 @@ void deleteFrechetData(std::vector<PointPtr> *inputPoints,
             delete (*queryTrueNeighbors)[i];
         }
     }
-    if(inputPoints_2d)
+    if (inputPoints_2d)
         delete inputPoints_2d;
     delete SearchData;
 }
