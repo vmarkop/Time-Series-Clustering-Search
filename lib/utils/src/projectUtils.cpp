@@ -1,5 +1,6 @@
 #include <fstream>
 #include <unistd.h>
+#include <float.h>
 
 #include "../inc/projectUtils.h"
 #include "../inc/mathUtils.h"
@@ -397,8 +398,8 @@ void pad_curve_new(crvPtr curve, int dim)
     {
         PointPtr _point = new PointStruct;
         _point->coords.resize(2);
-        _point->coords[0] = 10000;
-        _point->coords[1] = 10000;
+        _point->coords[0] = 10000.0;
+        _point->coords[1] = 10000.0;
         curve->push_back(_point);
     }
 }

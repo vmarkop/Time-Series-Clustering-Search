@@ -6,9 +6,9 @@
 #include <limits.h>
 
 #define BIGM (4294967291)
-#define W (30)
-#define DELTA (1.73)
-#define EPSILON (1)
+#define W (4)
+#define DELTA (1.2)
+#define EPSILON (2)
 
 typedef struct Point__Struct *PointPtr;
 typedef struct BucketStruct *BucketPtr;

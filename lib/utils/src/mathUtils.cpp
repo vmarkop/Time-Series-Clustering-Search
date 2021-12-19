@@ -144,7 +144,10 @@ double DFDistance(const PointPtr p, const PointPtr q, int dimension, std::vector
     }
     double retValue = (*_c)[(dimension)-1][(dimension)-1];
     if (flag)
+    {
+        _c->clear();
         delete _c;
+    }
     return retValue;
 }
 
@@ -159,7 +162,7 @@ double uniformDistributionGenerator(const double alpha, const double beta)
     return distribution(generator);
 }
 
-int avoidOverFlowModulo(long a, long b, long m, char op)
+long avoidOverFlowModulo(long a, long b, long m, char op)
 {
     switch (op)
     {
