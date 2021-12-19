@@ -300,3 +300,27 @@ void deleteData(std::vector<PointPtr> *inputPoints,
     }
     delete LSHData;
 }
+
+void deleteFrechetData(std::vector<PointPtr> *inputPoints,
+                std::vector<PointPtr> *inputPoints_2d,
+                std::vector<PointPtr> *queryPoints,
+                std::vector<NeighbourPtr> *queryOutputData,
+                std::vector<NeighbourPtr> *queryTrueNeighbors,
+                inputData *SearchData)
+{
+    for (int i = 0; i < inputPoints->size(); i++)
+    {
+        delete (*inputPoints)[i];
+        if(inputPoints_2d)
+            delete (*inputPoints_2d)[i];
+        if (i < queryPoints->size()) // Query points will always be <= input points, so this is safe
+        {
+            delete (*queryPoints)[i];
+            delete (*queryOutputData)[i];
+            delete (*queryTrueNeighbors)[i];
+        }
+    }
+    if(inputPoints_2d)
+        delete inputPoints_2d;
+    delete SearchData;
+}

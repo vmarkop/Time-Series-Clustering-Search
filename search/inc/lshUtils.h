@@ -4,7 +4,6 @@
 #include <string>
 #include "mathUtils.h"
 #include "projectUtils.h"
-// #include "hashTable.h"
 
 #define DEF_K 4
 #define DEF_K_HC 14
@@ -57,4 +56,11 @@ void deleteData(std::vector<PointPtr> *inputPoints,
                 std::vector<kNeighboursPtr> *queryOutputData,
                 std::vector<kNeighboursPtr> *queryTrueNeighbors,
                 inputData *LSHData);
+
+void deleteFrechetData(std::vector<PointPtr> *inputPoints,
+                std::vector<PointPtr> *inputPoints_2d,
+                std::vector<PointPtr> *queryPoints,
+                std::vector<NeighbourPtr> *queryOutputData,
+                std::vector<NeighbourPtr> *queryTrueNeighbors,
+                inputData *SearchData);
 #endif

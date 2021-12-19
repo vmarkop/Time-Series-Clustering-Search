@@ -188,17 +188,6 @@ int main(int argc, char **argv)
                 int numOfInputPoints = inputPoints.size();
                 std::cout << "Dimension: " << SearchData->dimension << std::endl;
 
-                // std::vector<PointPtr> snappedPoints;
-                // for (int i = 0; i < numOfInputPoints; i++)
-                //     snappedPoints.push_back(snap_point(inputPoints[i], DELTA, SearchData->dimension));
-
-                // std::vector<PointPtr> removedDupPoints;
-
-                // // Turning points from lines into 2d-projected curves
-                // std::vector<CurvePtr> *curves;
-                // SearchData->dimension = get_curves(inputLines, curves);
-                // int numOfInputPoints = curves->size();
-
                 // Create HashTablesObject that stores curves, projected to vectors of size 2*dim
                 FrechetDiscreteHashTables HashTablesObject(SearchData->intL, SearchData->numberOfHyperplanes, numOfInputPoints, SearchData->dimension, numOfInputPoints / 8);
                 // Inserting curves to hash table, after snapping them
@@ -216,7 +205,7 @@ int main(int argc, char **argv)
                 }
                 // Getting lines from query file
                 std::cout << "Reading query file " << SearchData->queryFileName << "..." << std::endl;
-                std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
+                std::vector<std::string> queryLines = get_lines(SearchData->queryFileName); 
                 // Getting curves from query lines
                 std::vector<PointPtr> queryCurves;
                 std::cout << "get_curves got " << get_curves(queryLines, &queryCurves) << std::endl;
@@ -242,6 +231,7 @@ int main(int argc, char **argv)
                     queryOutputData[i] = knnOutputData->neighbours[0];
                     auto LSH_end = std::chrono::high_resolution_clock::now();
                     tLSH[i] = std::chrono::duration_cast<std::chrono::milliseconds>(LSH_end - LSH_start).count();
+                    delete knnOutputData;
                 }
                 double tLSHAverage = 0.0;
                 for (int i = 0; i < numOfQueries; i++)
@@ -265,18 +255,19 @@ int main(int argc, char **argv)
                     queryTrueNeighbors[i] = kTrueOutputData->neighbours[0];
                     auto True_end = std::chrono::high_resolution_clock::now();
                     tTrue[i] = std::chrono::duration_cast<std::chrono::milliseconds>(True_end - True_start).count();
+                    delete kTrueOutputData;
                 }
                 double tTrueAverage = 0.0;
                 for (int i = 0; i < numOfQueries; i++)
-                    tTrueAverage += tLSH[i];
+                    tTrueAverage += tTrue[i];
 
                 // Writing results to outputFile
-                if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))
+                if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Frechet_Discrete"))
                     return EXIT_FAILURE;
 
                 // Deleting Data Structures
-                // std::cout << "Freeing memory" << std::endl;
-                // deleteData(&inputPoints, &queryPoints, &k_nearest_neighbours, &queryOutputData, &queryTrueNeighbors, SearchData);
+                std::cout << "Freeing memory" << std::endl;
+                deleteFrechetData(&inputPoints, inputPoints_2d, &queryCurves, &queryOutputData, &queryTrueNeighbors, SearchData);
             }
             else if (SearchData->metric == MTR_CONT)
             {
@@ -349,15 +340,15 @@ int main(int argc, char **argv)
                 }
                 double tTrueAverage = 0.0;
                 for (int i = 0; i < numOfQueries; i++)
-                    tTrueAverage += tLSH[i];
+                    tTrueAverage += tTrue[i];
 
                 // Writing results to outputFile
-                if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Vector"))
+                if (writeToOutputFrDsc(SearchData, queryCurves, queryOutputData, queryTrueNeighbors, tLSHAverage, tTrueAverage, "LSH_Freshet_Continuous"))
                     return EXIT_FAILURE;
 
                 // Deleting Data Structures
-                // std::cout << "Freeing memory" << std::endl;
-                // deleteData(&inputPoints, &queryPoints, &k_nearest_neighbours, &queryOutputData, &queryTrueNeighbors, SearchData);
+                std::cout << "Freeing memory" << std::endl;
+                deleteFrechetData(&inputPoints, NULL, &queryCurves, &queryOutputData, &queryTrueNeighbors, SearchData);
             }
         }
         return EXIT_SUCCESS;
