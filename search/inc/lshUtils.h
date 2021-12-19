@@ -7,7 +7,10 @@
 // #include "hashTable.h"
 
 #define DEF_K 4
+#define DEF_K_HC 14
 #define DEF_L 5
+#define DEF_M 10
+#define DEF_PROBES 2
 
 #define ALG_LSH 0
 #define ALG_HC 1

@@ -41,7 +41,7 @@ FrechetDiscreteHashTables::FrechetDiscreteHashTables(int L, int numberOfHyperpla
         {
 
             this->t[i][j] = uniformDistributionGenerator(0.0, W * 1.0);
-            this->ri[i][j] = rand() % 200 - 100;
+            this->ri[i][j] = rand() % 2000 - 1000;
             this->v[i][j].resize(this->dim * 2);
             for (int l = 0; l < this->dim * 2; l++)
                 this->v[i][j][l] = normalDistributionGenerator(0.0, 1.0);
@@ -67,15 +67,15 @@ void FrechetDiscreteHashTables::FrDscInsertPoint(PointPtr point)
         curveToPoint(concated_point, &snapped_curve, this->dim);
 
         long id = FrDscHashFunc(concated_point, i);
-        std::cout << "ididididididididididid" << id << std::endl;
         int j = euclideanModulo(id, this->TableSize);
-        std::cout << "asdasdqasdjjjjjjjjjjjjjjj" << j << std::endl;
+
+        this->hash_tables[i][j].ID.push_back(id);
+        this->hash_tables[i][j].points.push_back(point);
+
         deleteCrv(&snapped_curve);
         deleteCrv(&_curve);
         snapped_curve.clear();
         _curve.clear();
-        this->hash_tables[i][j].ID.push_back(id);
-        this->hash_tables[i][j].points.push_back(point);
         delete concated_point;
         //(r1h1 + r2h2 + r3h3 + r4h4 + r5h5) % m = ((r1h1 % m) + (r2h2 % m) + (r3h3 % m) + (r4h4 % m) + (r5h5 % m)) % m
         // = = = ( ((r1%m * h1%m)) % m + ... + ((r5%m * h5%m)) % m ) % m
@@ -121,7 +121,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
     {
         PointPtr concated_point = concat_point(queryPoint, this->dim);
         crv _curve, snapped_curve;
-        pointToCurve(queryPoint, &_curve, this->dim);
+        pointToCurve(concated_point, &_curve, this->dim);
         snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
         remove_dup_points(&snapped_curve, this->dim);
         pad_curve_new(&snapped_curve, this->dim);
@@ -161,7 +161,7 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
         {
             PointPtr concated_point = concat_point(queryPoint, this->dim);
             crv _curve, snapped_curve;
-            pointToCurve(queryPoint, &_curve, this->dim);
+            pointToCurve(concated_point, &_curve, this->dim);
             snap_curve(&snapped_curve, &_curve, this->_delta, &(this->_taf[i]), this->dim);
             remove_dup_points(&snapped_curve, this->dim);
             pad_curve_new(&snapped_curve, this->dim);

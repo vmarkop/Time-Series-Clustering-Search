@@ -4,9 +4,6 @@
 
 #include "lshUtils.h"
 
-#define DEF_M 10
-#define DEF_PROBES 2
-
 inputData *getInputData(int *argc, char **argv)
 {
 
@@ -83,10 +80,10 @@ inputData *getInputData(int *argc, char **argv)
     found.push_back(" ");
     std::string input = {};
 
-    if (std::find(found.begin(), found.end(), "k") == found.end()) // if not found -k
-    {
-        SearchData->numberOfHyperplanes = DEF_K;
-    }
+    // if (std::find(found.begin(), found.end(), "k") == found.end()) // if not found -k
+    // {
+    //     SearchData->numberOfHyperplanes = DEF_K;
+    // }
     if (std::find(found.begin(), found.end(), "l") == found.end()) // if not found -l
     {
         SearchData->intL = DEF_L;
@@ -97,7 +94,7 @@ inputData *getInputData(int *argc, char **argv)
     }
     if (std::find(found.begin(), found.end(), "probes") == found.end()) // if not found -probes
     {
-        SearchData->intM = DEF_PROBES;
+        SearchData->probes = DEF_PROBES;
     }
 
     if (std::find(found.begin(), found.end(), "inputFile") == found.end()) // if not found inputFile
@@ -143,7 +140,13 @@ inputData *getInputData(int *argc, char **argv)
     if (algorithmName == "LSH")
         SearchData->algorithm = ALG_LSH;
     else if (algorithmName == "Hypercube")
+    {
         SearchData->algorithm = ALG_HC;
+        if (std::find(found.begin(), found.end(), "k") == found.end()) // if not found -k
+        {
+            SearchData->numberOfHyperplanes = DEF_K_HC;
+        }
+    }
     else if (algorithmName == "Frechet")
     {
         SearchData->algorithm = ALG_FR;

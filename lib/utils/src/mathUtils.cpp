@@ -159,7 +159,7 @@ double uniformDistributionGenerator(const double alpha, const double beta)
     return distribution(generator);
 }
 
-int avoidOverFlowModulo(long a, long b, long m, char op)
+long avoidOverFlowModulo(long a, long b, long m, char op)
 {
     switch (op)
     {
