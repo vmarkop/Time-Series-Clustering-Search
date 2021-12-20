@@ -220,7 +220,8 @@ int writeToOutput(inputData *SearchData,
     }
 
     outputFile << "tApproximateAverage: " << (double)(tLSH / queryPoints.size() / 1000) << 's' << std::endl
-               << "tTrueAverage: " << (double)(tTrue / queryPoints.size() / 1000) << 's' << std::endl;
+               << "tTrueAverage: " << (double)(tTrue / queryPoints.size() / 1000) << 's' << std::endl
+               << "MAF: " << calculateMAF(queryOutputData, queryTrueNeighbors) << std::endl;
 
     outputFile.close();
     return EXIT_SUCCESS;
@@ -265,7 +266,8 @@ int writeToOutputFrDsc(inputData *SearchData,
     }
 
     outputFile << "tApproximateAverage: " << (double)(tLSH / queryPoints.size() / 1000) << 's' << std::endl
-               << "tTrueAverage: " << (double)(tTrue / queryPoints.size() / 1000) << 's' << std::endl;
+               << "tTrueAverage: " << (double)(tTrue / queryPoints.size() / 1000) << 's' << std::endl
+               << "MAF: " << calculateMAF(queryOutputData, queryTrueNeighbors) << std::endl;
 
     outputFile.close();
     return EXIT_SUCCESS;
@@ -323,4 +325,43 @@ void deleteFrechetData(std::vector<PointPtr> *inputPoints,
     if (inputPoints_2d)
         delete inputPoints_2d;
     delete SearchData;
+}
+
+double calculateMAF(std::vector<NeighbourPtr> queryOutputData, std::vector<NeighbourPtr> queryTrueNeighbors)
+{
+    double maf = -1.0;
+    double factor = 0.0;
+    int size = queryOutputData.size();
+
+    for (int i = 0; i < size; i++)
+    {
+        if (queryTrueNeighbors[i]->dist)
+            factor = queryOutputData[i]->dist / queryTrueNeighbors[i]->dist;
+        else
+            factor = 0;
+
+        if (factor > maf)
+            maf = factor;
+    }
+
+    return maf;
+}
+
+double calculateMAF(std::vector<kNeighboursPtr> queryOutputData, std::vector<kNeighboursPtr> queryTrueNeighbors)
+{
+    // std::vector<NeighbourPtr> queryApprox, queryTrue;
+    double maf = -1.0;
+    double factor = 0.0;
+    int size = queryOutputData.size();
+    for (int i = 0; i < size; i++)
+    {
+        if (queryTrueNeighbors[i]->neighbours[0]->dist)
+            factor = queryOutputData[i]->neighbours[0]->dist / queryTrueNeighbors[i]->neighbours[0]->dist;
+        else
+            factor = 0;
+
+        if (factor > maf)
+            maf = factor;
+    }
+    return maf;
 }

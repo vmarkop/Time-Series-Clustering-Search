@@ -116,7 +116,6 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
         returnData->neighbours[i]->point = NULL;
         returnData->neighbours[i]->dist = INT32_MAX; // initialize distance with a very big value
     }
-    std::cout << "numOfHash = " << this->numOfHashTables << std::endl;
     for (int i = 0; i < this->numOfHashTables; i++) // for i from 1 to L do
     {
         PointPtr concated_point = concat_point(queryPoint, this->dim);
@@ -199,7 +198,6 @@ kNeighboursPtr FrechetDiscreteHashTables::FrDsc_find_k_nearest_neighbours(PointP
         }
     }
     delete currNeighbour;
-    std::cout << "returnDataSize: " << returnData->size << std::endl;
     return returnData;
 }
 
@@ -234,7 +232,6 @@ std::vector<PointPtr> FrechetDiscreteHashTables::range_search(PointPtr queryPoin
         curveToPoint(concated_point, &snapped_curve, this->dim);
         long queryID = FrDscHashFunc(concated_point, i);
         int g = euclideanModulo(queryID, this->TableSize);
-        // std::cout << "something" << g << std::endl;
         for (int j = 0; j < this->hash_tables[i][g].points.size(); j++) // for each item p in bucket gi(q) do
         {
             bool found = binary_search(foundPoints->begin(), foundPoints->end(), this->hash_tables[i][g].points[j]->id);
@@ -256,10 +253,6 @@ std::vector<PointPtr> FrechetDiscreteHashTables::range_search(PointPtr queryPoin
         }
         delete concated_point;
     }
-    // std::cout << "metric1" << metric1 << std::endl;
-    // std::cout << "metric2" << metric2 << std::endl;
-    // std::cout << "metric3" << metric3 << std::endl;
-    // std::cout << "metric4" << metric4 << std::endl;
     delete currNeighbour;
     if (noFoundPoints)
         delete foundPoints;

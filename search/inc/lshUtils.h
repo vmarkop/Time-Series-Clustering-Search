@@ -58,9 +58,13 @@ void deleteData(std::vector<PointPtr> *inputPoints,
                 inputData *LSHData);
 
 void deleteFrechetData(std::vector<PointPtr> *inputPoints,
-                std::vector<PointPtr> *inputPoints_2d,
-                std::vector<PointPtr> *queryPoints,
-                std::vector<NeighbourPtr> *queryOutputData,
-                std::vector<NeighbourPtr> *queryTrueNeighbors,
-                inputData *SearchData);
+                       std::vector<PointPtr> *inputPoints_2d,
+                       std::vector<PointPtr> *queryPoints,
+                       std::vector<NeighbourPtr> *queryOutputData,
+                       std::vector<NeighbourPtr> *queryTrueNeighbors,
+                       inputData *SearchData);
+
+double calculateMAF(std::vector<NeighbourPtr> queryOutputData, std::vector<NeighbourPtr> queryTrueNeighbors);
+double calculateMAF(std::vector<kNeighboursPtr> queryOutputData, std::vector<kNeighboursPtr> queryTrueNeighbors);
+
 #endif

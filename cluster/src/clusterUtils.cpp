@@ -519,6 +519,7 @@ int getCLInputData(int argc, char **argv, clusterInputData *CLData)
     CLData->number_of_hypercube_dimensions = DEF_NUM_CUBE_DIM;
     CLData->number_of_probes = DEF_PROBES;
     CLData->complete = false;
+    CLData->silhouette = false;
 
     for (int i = 0; i < argc; i++)
     {
@@ -546,6 +547,12 @@ int getCLInputData(int argc, char **argv, clusterInputData *CLData)
             CLData->complete = true;
             std::cout << "-complete" << std::endl;
             found.push_back("complete");
+        }
+        else if (std::string(argv[i]) == "-silhouette")
+        {
+            CLData->silhouette = true;
+            std::cout << "-silhouette" << std::endl;
+            found.push_back("silhouette");
         }
         else if (std::string(argv[i]) == "-assignment")
         {
@@ -989,11 +996,15 @@ int writeToOutput(clusterInputData *CLData, std::vector<Cluster> *clusters, std:
     }
     outputFile << "clustering_time: " << (double)(tCluster / 1000)
                << "s" << std::endl;
-    outputFile << "Silhouette: [";
 
-    for (int i = 0; i < CLData->number_of_clusters; i++)
-        outputFile << (*clusters)[i].silhouette << ", ";
-    outputFile << totalSilhouette << "]" << std::endl;
+    if (CLData->silhouette)
+    {
+        outputFile << "Silhouette: [";
+
+        for (int i = 0; i < CLData->number_of_clusters; i++)
+            outputFile << (*clusters)[i].silhouette << ", ";
+        outputFile << totalSilhouette << "]" << std::endl;
+    }
 
     if (CLData->complete)
     {
@@ -1018,12 +1029,15 @@ int writeToOutput(clusterInputData *CLData, std::vector<Cluster> *clusters, std:
     return EXIT_SUCCESS;
 }
 
-void deleteData(std::vector<PointPtr> *inputPoints, clusterInputData *CLData, std::vector<PointPtr> *centroidPoints)
+void deleteData(std::vector<PointPtr> *centroidPoints, std::vector<PointPtr> *inputPoints, std::vector<PointPtr> *inputPoints_2d, clusterInputData *CLData)
 {
     for (int i = 0; i < CLData->numberOfInputPoints; i++)
+    {
         delete (*inputPoints)[i];
+        delete (*inputPoints_2d)[i];
+    }
 
-    for (int i = 0; CLData->number_of_clusters; i++)
+    for (int i = 0; i < CLData->number_of_clusters; i++)
         delete (*centroidPoints)[i];
 
     delete CLData;

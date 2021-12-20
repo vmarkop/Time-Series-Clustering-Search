@@ -40,7 +40,6 @@ int main(int argc, char **argv)
     {
         centroidPoints[i] = new PointStruct;
         centroidPoints[i]->id = "";
-        centroidPoints[i]->coords.resize(CLData->dimension);
     }
 
     std::vector<PointPtr> tempCentroidPoints = k_means(inputPoints, CLData); // CLData->number_of_clusters, CLData->dimension);
@@ -54,6 +53,7 @@ int main(int argc, char **argv)
         }
         else
         {
+            centroidPoints[i]->coords.resize(CLData->dimension);
             for (int j = 0; j < CLData->dimension; j++)
                 centroidPoints[i]->coords[j] = tempCentroidPoints[i]->coords[j];
         }
@@ -84,8 +84,12 @@ int main(int argc, char **argv)
 
     int tCluster = std::chrono::duration_cast<std::chrono::milliseconds>(cluster_end - cluster_start).count();
 
-    std::cout << "Evaluating silhouette..." << std::endl;
-    double totalSilhouette = evalSilhouette(CLData, &clusters);
+    double totalSilhouette = 0.0;
+    if (CLData->silhouette)
+    {
+        std::cout << "Evaluating silhouette..." << std::endl;
+        totalSilhouette = evalSilhouette(CLData, &clusters);
+    }
 
     std::cout << "Writing output file..." << std::endl;
     if (writeToOutput(CLData, &clusters, &centroidPoints, totalSilhouette, tCluster))
@@ -95,6 +99,8 @@ int main(int argc, char **argv)
     }
 
     // Deleting Data Structures
+    std::cout << "Freeing memory" << std::endl;
+    deleteData(&centroidPoints, &inputPoints, inputPoints_2d, CLData);
 
     return EXIT_SUCCESS;
 }

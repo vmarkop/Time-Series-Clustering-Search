@@ -200,7 +200,6 @@ int main(int argc, char **argv)
                 }
                 for (int i = 0; i < numOfInputPoints; i++)
                 {
-                    std::cout << inputPoints[i]->coords.size() << std::endl;
                     HashTablesObject.FrechetDiscreteHashTables::FrDscInsertPoint((*inputPoints_2d)[i]);
                 }
                 // Getting lines from query file
@@ -208,7 +207,7 @@ int main(int argc, char **argv)
                 std::vector<std::string> queryLines = get_lines(SearchData->queryFileName);
                 // Getting curves from query lines
                 std::vector<PointPtr> queryCurves;
-                std::cout << "get_curves got " << get_curves(queryLines, &queryCurves) << std::endl;
+                get_points(queryLines, &queryCurves);
                 int numOfQueries = queryCurves.size();
                 // LSH k nearest neighbor search
                 std::vector<std::vector<Neighbour> *> k_nearest_neighbours;

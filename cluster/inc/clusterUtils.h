@@ -46,7 +46,7 @@ typedef struct ClusterDataStruct
 
     int method, update;
 
-    bool complete;
+    bool complete, silhouette;
 
     int number_of_clusters,
         number_of_vector_hash_tables,
@@ -100,9 +100,10 @@ int writeToOutput(clusterInputData *CLData,
                   std::vector<PointPtr> *centroidPoints,
                   double totalSilhouette,
                   int tCluster);
-void deleteData(std::vector<PointPtr> *inputPoints,
-                clusterInputData *CLData,
-                std::vector<PointPtr> *centroidPoints);
+void deleteData(std::vector<PointPtr> *centroidPoints,
+                std::vector<PointPtr> *inputPoints,
+                std::vector<PointPtr> *inputPoints_2d,
+                clusterInputData *CLData);
 
 double minDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension);
 double minFrDistBetweenCentroids(std::vector<PointPtr> *centroidPoints, int numOfCentroids, int dimension);
