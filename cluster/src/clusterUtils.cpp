@@ -1033,12 +1033,14 @@ void deleteData(std::vector<PointPtr> *centroidPoints, std::vector<PointPtr> *in
 {
     for (int i = 0; i < CLData->numberOfInputPoints; i++)
     {
-        delete (*inputPoints)[i];
-        delete (*inputPoints_2d)[i];
+        if (inputPoints_2d != NULL)
+            if ((*inputPoints_2d)[i] != NULL)
+                delete (*inputPoints_2d)[i];
     }
 
     for (int i = 0; i < CLData->number_of_clusters; i++)
-        delete (*centroidPoints)[i];
+        if ((*centroidPoints)[i] != NULL)
+            delete (*centroidPoints)[i];
 
     delete CLData;
 }

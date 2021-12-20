@@ -57,6 +57,7 @@ int main(int argc, char **argv)
             for (int j = 0; j < CLData->dimension; j++)
                 centroidPoints[i]->coords[j] = tempCentroidPoints[i]->coords[j];
         }
+        delete tempCentroidPoints[i];
     }
     tempCentroidPoints.clear();
     std::vector<Cluster> clusters;
