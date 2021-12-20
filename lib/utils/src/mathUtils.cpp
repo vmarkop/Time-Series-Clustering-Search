@@ -12,10 +12,16 @@ double normalDistributionGenerator(const double mi, const double sigma)
 
 double euclideanDistance(const PointPtr x, const PointPtr y, int dimension)
 {
+    if( x == NULL || y == NULL )
+        return -1.0;
     double dist = 0.0;
     for (int i = 0; i < dimension; i++)
         dist += (x->coords[i] - y->coords[i]) * (x->coords[i] - y->coords[i]);
-    return sqrt(dist);
+    if( dist > 0)
+        return sqrt(dist);
+    else if (dist == 0)
+        return 0.0;
+    return -1.0;
 }
 
 double min(double x1, double x2, double x3)
